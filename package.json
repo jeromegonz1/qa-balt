@@ -1,0 +1,17 @@
+{
+  "name": "qa-balt",
+  "version": "2.0.1",
+  "description": "Agent QA automatisé pour sites AZKO/BALT en préprod",
+  "type": "module",
+  "scripts": {
+    "qa": "node qa.mjs",
+    "qa:tech": "node qa.mjs --tech-only",
+    "qa:visual": "node qa.mjs --visual-only",
+    "server": "node server.mjs",
+    "dev": "node --watch server.mjs"
+  },
+  "dependencies": {
+    "express": "^4.22.1",
+    "playwright": "^1.58.0"
+  }
+}

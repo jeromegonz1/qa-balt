@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+
+# Generated outputs
+reports/
+screenshots/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Debug screenshots
+headed-*.png
+
+# IDE
+.vscode/
+.idea/
