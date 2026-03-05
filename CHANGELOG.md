@@ -4,6 +4,23 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.4.0] - 2026-03-05
+
+### Added — Sprint 4 : SE Ranking Core Web Vitals
+- `lib/seranking-checks.mjs` : nouveau module performance via SE Ranking Site Audit API
+- Audit Standard automatique (2 credits/page, 5 pages max = 10 credits/audit)
+- Core Web Vitals Lighthouse : LCP, CLS, FCP, TBT avec seuils Google
+- Health score global SE Ranking avec seuils configurables
+- Detection temps de chargement lent (> 3s)
+- Polling automatique avec timeout 3 min
+- Cleanup : suppression audit après extraction
+- Token via .env (SERANKING_API_TOKEN) — skip silencieux si absent
+- Config extensible : `config.mjs > SERANKING` (mode, maxPages, cwvThresholds, healthScore)
+
+### Changed
+- `qa.mjs` : section 8 (performance), sections renumerotees 9-10
+- `report.mjs` : accepte `perfIssues` en parametre
+
 ## [2.3.0] - 2026-03-05
 
 ### Added — Sprint 3 : Accessibilité axe-core

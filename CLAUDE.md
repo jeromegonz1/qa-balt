@@ -8,7 +8,8 @@ Robot QA automatise pour sites AZKO/BALT (CMS Septeo). Node.js 22 ESM.
 - `server.mjs` : webhook Express ClickUp (port 3847)
 - `lib/config.mjs` : configuration centralisee (seuils, blacklists, patterns — extensible)
 - `lib/a11y-checks.mjs` : accessibilite axe-core (WCAG 2.1 AA, echantillon 10 pages)
-- `lib/` : 10 modules (config, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, report, clickup)
+- `lib/seranking-checks.mjs` : performance SE Ranking API (CWV Lighthouse, health score)
+- `lib/` : 11 modules (config, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, seranking-checks, report, clickup)
 
 ## Conventions code
 - ESM pur (`import`/`export`, pas de require)
