@@ -4,6 +4,23 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.3.0] - 2026-03-05
+
+### Added — Sprint 3 : Accessibilité axe-core
+- `lib/a11y-checks.mjs` : nouveau module accessibilité (WCAG 2.1 AA + best-practice)
+- Audit axe-core sur échantillon représentatif (max 10 pages, configurable)
+- Mapping automatique impact axe → sévérité QA-BALT (critical=BLOQUANT, serious=IMPORTANT, moderate/minor=MINEUR)
+- Dédup cross-pages : violations identiques regroupées, promotion sévérité automatique
+- Config extensible : tags, maxPages, severityMap, disabledRules dans `config.mjs > A11Y`
+- Règles désactivées : color-contrast (faux positifs GSAP), page-has-heading-one (doublon page-checks)
+- Intégration rapport : issues A11Y_ dans le flux standard de dédup + rendu Markdown
+- Dépendance : `@axe-core/playwright` ajouté
+
+### Changed
+- `qa.mjs` : section 7 (a11y) ajoutée, section rapport renumerotée en 8
+- `report.mjs` : accepte `a11yIssues` en paramètre
+- 109 → 109+ checks (axe-core couvre ~80 règles WCAG dynamiquement)
+
 ## [2.2.0] - 2026-03-05
 
 ### Added — Sprint 2 : 7 checks Playwright DOM mobile

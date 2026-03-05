@@ -18,6 +18,7 @@ import { runLinkChecks } from './lib/link-checks.mjs';
 import { runPageChecks } from './lib/page-checks.mjs';
 import { runContentChecks } from './lib/content-checks.mjs';
 import { runVisualChecks } from './lib/visual-checks.mjs';
+import { runA11yChecks } from './lib/a11y-checks.mjs';
 import { generateReport } from './lib/report.mjs';
 import { writeFileSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
@@ -180,7 +181,28 @@ if (!techOnly) {
 }
 
 // ═══════════════════════════════════════
-// 7. Génération du rapport
+// 7. Checks accessibilité (axe-core)
+// ═══════════════════════════════════════
+let a11yIssues = [];
+
+if (!techOnly) {
+  console.log('\n♿ Checks accessibilité (axe-core WCAG 2.1 AA)...');
+  try {
+    const a11yResult = await runA11yChecks(baseUrl, pagesWithStatus);
+    a11yIssues = a11yResult.issues;
+    const a11yBloquants = a11yIssues.filter(i => i.severity === 'BLOQUANT').length;
+    const a11yImportants = a11yIssues.filter(i => i.severity === 'IMPORTANT').length;
+    const a11yMineurs = a11yIssues.filter(i => i.severity === 'MINEUR').length;
+    console.log(`   ${a11yResult.pagesAudited} pages auditées`);
+    console.log(`   ${a11yBloquants} bloquants, ${a11yImportants} importants, ${a11yMineurs} mineurs`);
+  } catch (err) {
+    console.log(`   ⚠️ axe-core error: ${err.message}`);
+    console.log('   Les checks accessibilité sont ignorés.');
+  }
+}
+
+// ═══════════════════════════════════════
+// 8. Génération du rapport
 // ═══════════════════════════════════════
 console.log('\n📝 Génération du rapport...');
 const report = generateReport(baseUrl, {
@@ -190,6 +212,7 @@ const report = generateReport(baseUrl, {
   contentIssues,
   techInfo,
   visualIssues,
+  a11yIssues,
   pages: pagesWithStatus,
   screenshotPaths,
 });
@@ -200,7 +223,7 @@ writeFileSync(reportPath, report, 'utf-8');
 // ═══════════════════════════════════════
 // 8. Résumé final
 // ═══════════════════════════════════════
-const allIssues = [...techIssues, ...linkIssues, ...pageIssues, ...contentIssues, ...visualIssues];
+const allIssues = [...techIssues, ...linkIssues, ...pageIssues, ...contentIssues, ...visualIssues, ...a11yIssues];
 const totalBloquants = allIssues.filter(i => i.severity === 'BLOQUANT').length;
 const totalImportants = allIssues.filter(i => i.severity === 'IMPORTANT').length;
 

@@ -1,6 +1,6 @@
 {
   "name": "qa-balt",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Agent QA automatisé pour sites AZKO/BALT en préprod",
   "type": "module",
   "scripts": {
@@ -11,6 +11,7 @@
     "dev": "node --watch server.mjs"
   },
   "dependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "express": "^4.22.1",
     "playwright": "^1.58.0"
   }
