@@ -55,6 +55,9 @@ Exemple:
 
 // Normaliser l'URL
 const baseUrl = url.replace(/\/$/, '');
+
+// Contexte site (enrichi par ClickUp dans server.mjs, vide en CLI)
+const siteContext = {};
 const domain = new URL(baseUrl).hostname;
 const siteSlug = domain.split('.')[0];
 const timestamp = new Date().toISOString().slice(0, 10);
@@ -122,7 +125,7 @@ let linkIssues = [];
 
 if (!visualOnly) {
   console.log('\n🔗 Checks des liens...');
-  const linkResult = runLinkChecks(baseUrl, pagesWithStatus);
+  const linkResult = runLinkChecks(baseUrl, pagesWithStatus, siteContext);
   linkIssues = linkResult.issues;
 
   const linkBloquants = linkIssues.filter(i => i.severity === 'BLOQUANT').length;
@@ -241,6 +244,7 @@ const report = generateReport(baseUrl, {
   perfIssues,
   pages: pagesWithStatus,
   screenshotPaths,
+  siteContext,
 });
 
 const reportPath = resolve(reportsDir, `${siteSlug}-${timestamp}.md`);
