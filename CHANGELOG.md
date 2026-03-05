@@ -4,6 +4,28 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.5.0] - 2026-03-05
+
+### Added — Sprint correctif : rapport V3, ClickUp enrichi, détection cross-client
+- **Rapport V3** : groupement intelligent par ID (N bruts → M groupés) + catégorisation automatique
+  - 6 catégories : TECHNIQUE, SEO, ACCESSIBILITÉ, UX/RESPONSIVE, CONTENU, CMS/AZKO
+  - CATEGORY_RULES : regex-based mapping issue ID → catégorie (extensible)
+  - Section BLOQUANTS et CHECKLIST MEP restent en haut, détail par catégorie en dessous
+  - Template detection préservée (>40% pages → scope template)
+- **ClickUp enrichi** : `extractSiteContext()` extrait modèle, secteur, titre, URL existante, téléphone, emails
+  - Support dropdowns et labels ClickUp (type_config.options)
+  - Header rapport enrichi avec infos ClickUp (modèle, secteur, site existant)
+- **Détection cross-client réseaux sociaux** : `checkSocialProfileMatch()` dans link-checks
+  - Scrape og:title du profil social, compare avec titre site ClickUp
+  - Si profil d'un autre client → BLOQUANT (ex: Instagram notaire sur site camping)
+  - Seuil : <20% correspondance mots + secteur différent
+
+### Changed
+- `report.mjs` : réécriture complète V3 (groupIssues + renderCategorySection)
+- `link-checks.mjs` : social links testés en GET (plus HEAD) pour lire le profil
+- `qa.mjs` : passage siteContext dans pipeline (link-checks + report)
+- `clickup.mjs` : ajout extractSiteContext(), extractFieldValue(), normalizeUrl()
+
 ## [2.4.0] - 2026-03-05
 
 ### Added — Sprint 4 : SE Ranking Core Web Vitals
