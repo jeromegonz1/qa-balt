@@ -53,7 +53,12 @@ Robot QA automatise pour sites AZKO/BALT (CMS Septeo). Node.js 22 ESM.
 
 ## Tests
 - Pas de framework de test. Le robot EST un outil de test.
+- Panel de sites multi-secteurs dans `config.mjs > TEST_SITES` :
+  - **Camping** : camping-les-cinq-vallees, camping-municipal-hippodrome
+  - **Avocat** : lc-avocats, rousselavocat, ordre-avocats-limoges
+  - **Hotel** : hotel-lys-chablis
 - Valider sur des sites reels : `node qa.mjs http://camping-les-cinq-vallees.site.azko.fr --tech-only`
+- Varier les sites de test pour couvrir differents secteurs et templates
 
 ## Fichiers ignores par Git
 - `node_modules/`, `.env`, `reports/`, `screenshots/`, `headed-*.png`, `.DS_Store`
