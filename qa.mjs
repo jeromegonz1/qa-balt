@@ -19,6 +19,7 @@ import { runPageChecks } from './lib/page-checks.mjs';
 import { runContentChecks } from './lib/content-checks.mjs';
 import { runVisualChecks } from './lib/visual-checks.mjs';
 import { runA11yChecks } from './lib/a11y-checks.mjs';
+import { runSeRankingChecks } from './lib/seranking-checks.mjs';
 import { generateReport } from './lib/report.mjs';
 import { writeFileSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
@@ -202,7 +203,31 @@ if (!techOnly) {
 }
 
 // ═══════════════════════════════════════
-// 8. Génération du rapport
+// 8. Performance SE Ranking (Core Web Vitals)
+// ═══════════════════════════════════════
+let perfIssues = [];
+
+if (!techOnly && !visualOnly) {
+  console.log('\n⚡ Checks performance (SE Ranking — Core Web Vitals)...');
+  try {
+    const perfResult = await runSeRankingChecks(baseUrl);
+    if (perfResult.skipped) {
+      console.log(`   ⏭️  Skippé : ${perfResult.reason}`);
+    } else {
+      perfIssues = perfResult.issues;
+      const perfImportants = perfIssues.filter(i => i.severity === 'IMPORTANT').length;
+      const perfMineurs = perfIssues.filter(i => i.severity === 'MINEUR').length;
+      console.log(`   ${perfResult.totalPages} pages auditées (${perfResult.totalErrors} erreurs, ${perfResult.totalWarnings} warnings)`);
+      console.log(`   ${perfImportants} importants, ${perfMineurs} mineurs`);
+    }
+  } catch (err) {
+    console.log(`   ⚠️ SE Ranking error: ${err.message}`);
+    console.log('   Les checks performance sont ignorés.');
+  }
+}
+
+// ═══════════════════════════════════════
+// 9. Génération du rapport
 // ═══════════════════════════════════════
 console.log('\n📝 Génération du rapport...');
 const report = generateReport(baseUrl, {
@@ -213,6 +238,7 @@ const report = generateReport(baseUrl, {
   techInfo,
   visualIssues,
   a11yIssues,
+  perfIssues,
   pages: pagesWithStatus,
   screenshotPaths,
 });
@@ -221,9 +247,9 @@ const reportPath = resolve(reportsDir, `${siteSlug}-${timestamp}.md`);
 writeFileSync(reportPath, report, 'utf-8');
 
 // ═══════════════════════════════════════
-// 8. Résumé final
+// 10. Résumé final
 // ═══════════════════════════════════════
-const allIssues = [...techIssues, ...linkIssues, ...pageIssues, ...contentIssues, ...visualIssues, ...a11yIssues];
+const allIssues = [...techIssues, ...linkIssues, ...pageIssues, ...contentIssues, ...visualIssues, ...a11yIssues, ...perfIssues];
 const totalBloquants = allIssues.filter(i => i.severity === 'BLOQUANT').length;
 const totalImportants = allIssues.filter(i => i.severity === 'IMPORTANT').length;
 
