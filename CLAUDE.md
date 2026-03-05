@@ -44,6 +44,13 @@ Robot QA automatise pour sites AZKO/BALT (CMS Septeo). Node.js 22 ESM.
 - Service : systemd qa-balt + Nginx reverse proxy (port 3847)
 - Deploy : `git pull` + `npm install` + `sudo systemctl restart qa-balt`
 
+## Checks visuels (visual-checks.mjs)
+- COUCHE 1 mobile (390px) : screenshots fiables + 7 checks DOM Sprint 2
+  - OVERFLOW_HORIZONTAL, FONT_TOO_SMALL, HEADER_TOO_TALL, HERO_TOO_TALL, IMG_DISTORTED, FORM_LABEL_MISSING, FORM_LABEL_PLACEHOLDER_ONLY
+  - Menu burger : bloc separe apres la boucle (BURGER_MENU_BROKEN, BURGER_NOT_FOUND, BURGER_NAV_NOT_FOUND)
+- COUCHE 2 desktop : injection JS (FORCE_VISIBLE_JS) pour contourner GSAP
+- COUCHE 3 HTML brut : fallback ultime via page.content()
+
 ## Tests
 - Pas de framework de test. Le robot EST un outil de test.
 - Valider sur des sites reels : `node qa.mjs http://camping-les-cinq-vallees.site.azko.fr --tech-only`
