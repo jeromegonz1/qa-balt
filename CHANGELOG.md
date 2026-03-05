@@ -4,6 +4,29 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.1.0] - 2026-03-05
+
+### Added — Sprint 1 : 14 quick wins
+- `lib/config.mjs` : configuration centralisee (seuils, blacklists, patterns extensibles)
+- **Emails blacklistes** : detection contact@azko.fr dans HTML + formulaires (BLOQUANT)
+- **Noms blacklistes** : Olivier Gilles, Lison Guerin, etc. dans le contenu (BLOQUANT)
+- **Logo format** : verification SVG/WebP obligatoire (IMPORTANT)
+- **Favicon enrichi** : Content-Type, support `<link rel=icon>` (MINEUR)
+- **Fax vide** : detection label "Fax :" sans numero (MINEUR)
+- **Email non cliquable** : email visible sans mailto: (IMPORTANT)
+- **Page 404 personnalisee** : detection template serveur par defaut (IMPORTANT)
+- **Images WebP** : ratio images non-WebP avec exemples (MINEUR)
+- **URL propres** : detection parametres laids ?id=, &p= (MINEUR)
+- **Liens reseaux sociaux** : test URLs + detection profils AZKO par defaut (IMPORTANT)
+- **Adresse GMAP Azko** : detection adresse siege Septeo dans iframes Maps (BLOQUANT)
+- **Double seuil title** : 70 chars MINEUR + 150 chars IMPORTANT (etait 70 unique)
+- **Double seuil meta desc** : 160 chars MINEUR + 320 chars IMPORTANT (etait 160 unique)
+
+### Changed
+- Refactored DEFAULT_CMS_PAGES vers config.mjs (plus hardcode dans tech-checks)
+- Patterns content-checks supportent `severity` optionnel (backward compatible)
+- 88 → 102 checks automatises (+14)
+
 ## [2.0.1] - 2026-03-05
 
 ### Changed

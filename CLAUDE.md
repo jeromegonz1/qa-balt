@@ -6,7 +6,8 @@ Robot QA automatise pour sites AZKO/BALT (CMS Septeo). Node.js 22 ESM.
 ## Architecture
 - `qa.mjs` : orchestrateur CLI (flags: --tech-only, --visual-only, --model-url)
 - `server.mjs` : webhook Express ClickUp (port 3847)
-- `lib/` : 8 modules (crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, report, clickup)
+- `lib/config.mjs` : configuration centralisee (seuils, blacklists, patterns — extensible)
+- `lib/` : 9 modules (config, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, report, clickup)
 
 ## Conventions code
 - ESM pur (`import`/`export`, pas de require)
@@ -18,10 +19,12 @@ Robot QA automatise pour sites AZKO/BALT (CMS Septeo). Node.js 22 ESM.
 - Helper `preprodOrBloquant()` pour adapter la severite en preprod (.site.azko.fr)
 
 ## Ajout d'un nouveau check
-1. Identifier le module cible (tech-checks, page-checks, etc.)
-2. Ajouter l'issue avec `issues.push({ severity, id, title, detail })`
-3. Suivre le pattern existant du module
-4. Tester sur `camping-les-cinq-vallees.site.azko.fr` (preprod) ou `camping-arquebuse.site.azko.fr`
+1. Si configurable (seuil, blacklist, pattern) → ajouter dans `lib/config.mjs`
+2. Identifier le module cible (tech-checks, page-checks, etc.)
+3. Importer depuis config.mjs : `import { MA_CONFIG } from './config.mjs';`
+4. Ajouter l'issue avec `issues.push({ severity, id, title, detail })`
+5. Suivre le pattern existant du module
+6. Tester sur `camping-les-cinq-vallees.site.azko.fr` (preprod) ou `camping-arquebuse.site.azko.fr`
 
 ## Ajout d'un nouveau module
 1. Creer `lib/mon-module.mjs` avec `export function runMonModule(baseUrl, pages) { return { issues }; }`
