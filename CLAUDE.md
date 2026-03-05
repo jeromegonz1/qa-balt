@@ -34,6 +34,19 @@ Robot QA automatise pour sites AZKO/BALT (CMS Septeo). Node.js 22 ESM.
 3. Appeler dans la sequence avec le bon flag guard (!techOnly, !visualOnly)
 4. Ajouter les issues dans le `generateReport()`
 
+## Rapport V3 (report.mjs)
+- Groupement intelligent : issues avec meme ID regroupees (N bruts → M groupes)
+- 6 categories auto : TECHNIQUE, SEO, ACCESSIBILITE, UX, CONTENU, CMS
+- CATEGORY_RULES : regex-based mapping issue ID → categorie (extensible, fallback → TECHNIQUE)
+- Structure : BLOQUANTS → CHECKLIST MEP → DETAIL PAR CATEGORIE → PAGES → PRIORITES
+- Template scope : >40% pages → "(template — N pages)"
+
+## ClickUp integration (clickup.mjs)
+- `extractSiteContext(task)` : extrait model, sector, title, existingUrl, phone, emails
+- Gere dropdowns (type_config.options) et labels ClickUp
+- siteContext passe dans pipeline : link-checks (cross-client) + report (header enrichi)
+- `checkSocialProfileMatch()` dans link-checks : scrape og:title profil social, compare avec titre site
+
 ## Git workflow
 - Branche `main` = prod (ce qui tourne sur le VPS)
 - Feature branches : `feature/sprint-X` pour chaque sprint
