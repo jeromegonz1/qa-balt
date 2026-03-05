@@ -7,12 +7,13 @@ Robot QA automatise pour sites AZKO/BALT (CMS Septeo). Node.js 22 ESM.
 - `qa.mjs` : orchestrateur CLI (flags: --tech-only, --visual-only, --model-url)
 - `server.mjs` : webhook Express ClickUp (port 3847)
 - `lib/config.mjs` : configuration centralisee (seuils, blacklists, patterns — extensible)
-- `lib/` : 9 modules (config, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, report, clickup)
+- `lib/a11y-checks.mjs` : accessibilite axe-core (WCAG 2.1 AA, echantillon 10 pages)
+- `lib/` : 10 modules (config, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, report, clickup)
 
 ## Conventions code
 - ESM pur (`import`/`export`, pas de require)
 - HTTP via `curl` + `execSync` (pas d'axios/fetch pour les checks)
-- Playwright uniquement dans `visual-checks.mjs` (et futur `a11y-checks.mjs`)
+- Playwright dans `visual-checks.mjs` (headed, GSAP) et `a11y-checks.mjs` (headless, axe-core)
 - Chaque issue = `{ severity, id, title, detail, page? }`
 - IDs en SCREAMING_SNAKE_CASE (ex: `SSL_EXPIRED`, `ALT_MISSING`)
 - Severites : BLOQUANT, CHECKLIST_MEP, IMPORTANT, MINEUR
