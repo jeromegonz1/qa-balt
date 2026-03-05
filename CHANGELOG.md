@@ -4,6 +4,20 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.2.0] - 2026-03-05
+
+### Added — Sprint 2 : 7 checks Playwright DOM mobile
+- **Debordement horizontal** : scrollWidth > viewport, identification element fautif (IMPORTANT)
+- **Police minimale 14px** : detection textes < 14px hors nav/header/footer, filtre icons 0px (MINEUR)
+- **Header trop haut** : > 18% viewport = IMPORTANT, > 25% = BLOQUANT
+- **Hero trop haut** : > 90% viewport mobile, ignore les heros avec formulaire (IMPORTANT/BLOQUANT)
+- **Images deformees** : ratio naturel vs affiche > 10%, ignore object-fit cover/contain (IMPORTANT)
+- **Labels formulaire** : champs sans label (IMPORTANT) + placeholder-only (MINEUR)
+- **Menu burger** : clic + verification navigation mobile, detection burger absent (BLOQUANT/IMPORTANT)
+
+### Changed
+- 102 → 109 checks automatises (+7)
+
 ## [2.1.0] - 2026-03-05
 
 ### Added — Sprint 1 : 14 quick wins
