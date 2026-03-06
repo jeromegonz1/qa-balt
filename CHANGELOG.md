@@ -4,6 +4,21 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.5.1] - 2026-03-06
+
+### Fixed
+- **IMG_BROKEN** : detection images avec src vide (lazy load rate par GSAP/permission prompt)
+  - Images visibles avec `src=""` sont maintenant detectees comme cassees
+  - Severite BLOQUANT si >=5 images cassees sur une page
+  - Teste sur camping-arquebuse : 43 images cassees correctement detectees
+- **Permission prompt** : ajout Chrome flag `--disable-features=PrivateNetworkAccessPermissionPrompt`
+  - Bloque la popup "acceder au reseau local" qui empechait le chargement des images
+- **Dialog auto-dismiss** : tous les contextes Playwright (mobile + desktop) refusent automatiquement les dialogues navigateur
+- **Permissions** : `permissions: []` sur tous les contextes pour refuser geoloc, reseau local, etc.
+
+### Added
+- `docs/SPRINT-P1-P2-P3.md` : brief technique Sprint Playwright v3 (P1 Fiabilisation, P2 Preuve, P3 Rerun)
+
 ## [2.5.0] - 2026-03-05
 
 ### Added — Sprint correctif : rapport V3, ClickUp enrichi, détection cross-client
