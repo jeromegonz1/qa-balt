@@ -63,6 +63,28 @@ app.use(express.json());
 
 // Jobs en cours (pour éviter les doublons)
 const activeJobs = new Map();
+const MAX_CONCURRENT_JOBS = parseInt(process.env.MAX_CONCURRENT_JOBS) || 3;
+const JOB_STALE_MS = 15 * 60 * 1000; // 15 min
+
+// ── Auth middleware (si QA_BALT_API_KEY défini) ──
+const API_KEY = process.env.QA_BALT_API_KEY;
+function requireAuth(req, res, next) {
+  if (!API_KEY) return next(); // pas de clé = pas d'auth (dev local)
+  const key = req.headers['x-api-key'] || req.query.api_key;
+  if (key === API_KEY) return next();
+  return res.status(401).json({ error: 'API key invalide ou manquante (header X-API-Key)' });
+}
+
+// ── Nettoyage des jobs périmés ──
+function cleanupStaleJobs() {
+  const now = Date.now();
+  for (const [taskId, job] of activeJobs) {
+    if (now - new Date(job.started).getTime() > JOB_STALE_MS) {
+      console.log(`🧹 Job périmé supprimé : ${taskId} (lancé ${job.started})`);
+      activeJobs.delete(taskId);
+    }
+  }
+}
 
 // ═══════════════════════════════════════
 // Routes
@@ -87,7 +109,7 @@ app.get('/health', (req, res) => {
  *   "task_name": "Site ...",   ← Nom de la tâche (optionnel)
  * }
  */
-app.post('/api/qa', async (req, res) => {
+app.post('/api/qa', requireAuth, async (req, res) => {
   const taskId = req.body.task_id || req.body.taskId;
 
   if (!taskId) {
@@ -99,6 +121,17 @@ app.post('/api/qa', async (req, res) => {
     return res.status(409).json({
       error: 'QA déjà en cours pour cette tâche',
       started: activeJobs.get(taskId).started,
+    });
+  }
+
+  // Nettoyer les jobs périmés (>15 min)
+  cleanupStaleJobs();
+
+  // Rate limit : max N jobs simultanés
+  if (activeJobs.size >= MAX_CONCURRENT_JOBS) {
+    return res.status(429).json({
+      error: `Limite atteinte (${MAX_CONCURRENT_JOBS} audits simultanés)`,
+      activeJobs: activeJobs.size,
     });
   }
 
@@ -121,10 +154,15 @@ app.post('/api/qa', async (req, res) => {
  * Payload : { "url": "http://xxx.site.azko.fr" }
  * Retourne le rapport directement (bloquant)
  */
-app.post('/api/qa/direct', async (req, res) => {
+app.post('/api/qa/direct', requireAuth, async (req, res) => {
   const url = req.body.url;
   if (!url) {
     return res.status(400).json({ error: 'url manquant' });
+  }
+  try {
+    new URL(url);
+  } catch {
+    return res.status(400).json({ error: 'URL invalide' });
   }
 
   const directModelUrl = req.body.model_url || req.body.modelUrl || null;
@@ -279,14 +317,15 @@ function runQA(url, modelUrl = null, siteContext = {}) {
 }
 
 // ═══════════════════════════════════════
-// Start
+// Start + Graceful shutdown
 // ═══════════════════════════════════════
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════════════╗
 ║       QA-BALT Server v${pkg.version.padEnd(27)}║
 ╠══════════════════════════════════════════════════╣
 ║  Port: ${String(PORT).padEnd(42)}║
+║  Auth: ${API_KEY ? '🔒 API key active' : '⚠️  Pas de clé (dev)'}${' '.repeat(API_KEY ? 24 : 23)}║
 ║  ClickUp: ${process.env.CLICKUP_API_TOKEN ? '✅ Token configuré' : '⚠️  Token manquant (.env)'}${' '.repeat(process.env.CLICKUP_API_TOKEN ? 23 : 18)}║
 ╠══════════════════════════════════════════════════╣
 ║  Endpoints:                                      ║
@@ -297,3 +336,28 @@ app.listen(PORT, () => {
 ╚══════════════════════════════════════════════════╝
   `);
 });
+
+// Graceful shutdown
+function shutdown(signal) {
+  console.log(`\n🛑 ${signal} reçu — arrêt gracieux...`);
+  if (activeJobs.size > 0) {
+    console.log(`   ${activeJobs.size} job(s) en cours — attente de fin...`);
+  }
+  server.close(() => {
+    console.log('   Serveur HTTP fermé.');
+    // Les subprocess qa.mjs finiront naturellement
+    // On attend un peu pour les commentaires ClickUp en cours
+    setTimeout(() => {
+      console.log('   Bye.');
+      process.exit(0);
+    }, activeJobs.size > 0 ? 5000 : 0);
+  });
+  // Force exit après 30s max
+  setTimeout(() => {
+    console.error('   ⚠️ Timeout — arrêt forcé.');
+    process.exit(1);
+  }, 30000);
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

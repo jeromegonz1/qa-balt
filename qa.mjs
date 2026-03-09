@@ -58,8 +58,14 @@ Exemple:
   process.exit(1);
 }
 
-// Normaliser l'URL
+// Normaliser et valider l'URL
 const baseUrl = url.replace(/\/$/, '');
+try {
+  new URL(baseUrl);
+} catch {
+  console.error(`❌ URL invalide : ${baseUrl}`);
+  process.exit(1);
+}
 
 // Contexte site (enrichi par ClickUp via --site-context, vide en CLI)
 let siteContext = {};
