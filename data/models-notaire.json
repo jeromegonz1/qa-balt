@@ -1,0 +1,689 @@
+{
+  "carignan": {
+    "id": "carignan",
+    "name": "Carignan",
+    "demoUrl": "https://carignan.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline"
+    ],
+    "annoncesImmo": true
+  },
+  "chardonnay": {
+    "id": "chardonnay",
+    "name": "Chardonnay",
+    "demoUrl": "https://chardonnay.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "L'etude",
+        "Equipe",
+        "Expertises",
+        "Actus",
+        "Annonces immo",
+        "Tarifs",
+        "Contact",
+        "Services"
+      ],
+      "submenus": {
+        "Expertises": [
+          "Droit de la famille",
+          "Droit immobilier",
+          "Droit des affaires"
+        ],
+        "Services": [
+          "Liens utiles",
+          "RDV en ligne",
+          "Paiement en ligne",
+          "Acces professionnel",
+          "Espace client"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 7,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "acces-pro",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "features": [
+      "Schema.org JSON-LD Notary",
+      "Google Maps (coords 43.5951768, 3.9242324)",
+      "Google Analytics + GTM",
+      "Cookie management",
+      "Lazy loading",
+      "Responsive (993/768 breakpoints)",
+      "mondossiernotaire.fr RDV integration"
+    ],
+    "expertises": [
+      "Droit de la famille",
+      "Droit immobilier",
+      "Droit des affaires"
+    ],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "acces-pro"
+    ],
+    "annoncesImmo": true
+  },
+  "chenanson": {
+    "id": "chenanson",
+    "name": "Chenanson",
+    "demoUrl": "https://chenanson.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline"
+    ],
+    "annoncesImmo": true
+  },
+  "cinsault": {
+    "id": "cinsault",
+    "name": "Cinsault",
+    "demoUrl": "https://cinsault.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline"
+    ],
+    "annoncesImmo": true
+  },
+  "grenache": {
+    "id": "grenache",
+    "name": "Grenache",
+    "demoUrl": "https://grenache.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline"
+    ],
+    "annoncesImmo": true
+  },
+  "marcillac": {
+    "id": "marcillac",
+    "name": "Marcillac",
+    "demoUrl": "https://marcillac.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline"
+    ],
+    "annoncesImmo": true
+  },
+  "merlot": {
+    "id": "merlot",
+    "name": "Merlot",
+    "demoUrl": "https://merlot.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Presentation",
+        "Domaines d'intervention",
+        "Services en ligne",
+        "Actus",
+        "Tarifs",
+        "Contact"
+      ],
+      "submenus": {
+        "Domaines d'intervention": [
+          "Droit immobilier",
+          "Droit de la famille",
+          "Gestion de patrimoine"
+        ],
+        "Services en ligne": [
+          "RDV en ligne",
+          "Liens utiles",
+          "Espace client",
+          "Acces Pro",
+          "Paiement en ligne"
+        ]
+      }
+    },
+    "hero": "slide (slick)",
+    "sectionsAccueil": 5,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "espace-client",
+      "acces-pro",
+      "annonces-immo",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "features": [
+      "Cookie management",
+      "IE warning",
+      "Lazy loading",
+      "Analytics (GA4+GTM)",
+      "Multi-language"
+    ],
+    "expertises": [
+      "Droit immobilier",
+      "Droit de la famille",
+      "Gestion de patrimoine"
+    ],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "acces-pro"
+    ],
+    "annoncesImmo": true
+  },
+  "muscat": {
+    "id": "muscat",
+    "name": "Muscat",
+    "demoUrl": "https://muscat.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram",
+      "youtube"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline"
+    ],
+    "annoncesImmo": true
+  },
+  "othello": {
+    "id": "othello",
+    "name": "Othello",
+    "demoUrl": "https://othello.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Notre Etude",
+        "Notre equipe",
+        "Nos expertises",
+        "Tarifs",
+        "Nos actualites",
+        "Annonces immobilieres",
+        "Nos services numeriques",
+        "Contact"
+      ],
+      "submenus": {
+        "Nos expertises": [
+          "Droit de la famille",
+          "Gestion de patrimoine",
+          "Droit immobilier",
+          "Droit des affaires"
+        ]
+      }
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": 8,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "espace-client",
+      "acces-pro",
+      "annonces-immo",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [
+      "Schema.org JSON-LD",
+      "Interactive testimonials carousel",
+      "Real estate listings",
+      "Blog/news",
+      "Cookie management",
+      "Lazy loading"
+    ],
+    "expertises": [
+      "Droit de la famille",
+      "Gestion de patrimoine",
+      "Droit immobilier",
+      "Droit des affaires"
+    ],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "acces-pro"
+    ],
+    "annoncesImmo": true
+  },
+  "pais": {
+    "id": "pais",
+    "name": "Pais",
+    "demoUrl": "https://pais.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline"
+    ],
+    "annoncesImmo": true
+  },
+  "persan": {
+    "id": "persan",
+    "name": "Persan",
+    "demoUrl": "https://persan.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline"
+    ],
+    "annoncesImmo": true
+  },
+  "picrate": {
+    "id": "picrate",
+    "name": "Picrate",
+    "demoUrl": "https://picrate.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline"
+    ],
+    "annoncesImmo": true
+  },
+  "poulsard": {
+    "id": "poulsard",
+    "name": "Poulsard",
+    "demoUrl": "https://poulsard.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline"
+    ],
+    "annoncesImmo": true
+  },
+  "syrah": {
+    "id": "syrah",
+    "name": "Syrah",
+    "demoUrl": "https://syrah.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "secibonline"
+    ],
+    "annoncesImmo": true
+  }
+}

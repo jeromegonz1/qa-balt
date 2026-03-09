@@ -1,0 +1,717 @@
+{
+  "allegro": {
+    "id": "allegro",
+    "name": "Allegro",
+    "demoUrl": "https://allegro.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "L'Etude",
+        "L'Equipe",
+        "Competences",
+        "Actualites",
+        "Services",
+        "Contact"
+      ],
+      "submenus": {
+        "Competences": [
+          "Recouvrement des impayes",
+          "Execution des jugements",
+          "Mesures d'execution"
+        ],
+        "Services": [
+          "Paiement en ligne",
+          "Espace constats",
+          "Demande de constat"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 7,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-constats",
+      "demande-constat",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [
+      "Cookie management",
+      "Lazy loading",
+      "Deferred JS",
+      "Responsive carousel"
+    ],
+    "expertises": [
+      "Recouvrement des impayes",
+      "Execution des jugements",
+      "Mesures d'execution"
+    ],
+    "services": [
+      "paiement-en-ligne",
+      "espace-constats",
+      "demande-constat"
+    ],
+    "legatus": false
+  },
+  "alto": {
+    "id": "alto",
+    "name": "Alto",
+    "demoUrl": "https://alto.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  },
+  "blues": {
+    "id": "blues",
+    "name": "Blues",
+    "demoUrl": "https://blues.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  },
+  "cadence": {
+    "id": "cadence",
+    "name": "Cadence",
+    "demoUrl": "https://cadence.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram",
+      "youtube"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  },
+  "distorsion": {
+    "id": "distorsion",
+    "name": "Distorsion",
+    "demoUrl": "https://distorsion.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  },
+  "hymne": {
+    "id": "hymne",
+    "name": "Hymne",
+    "demoUrl": "https://hymne.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  },
+  "instrumental": {
+    "id": "instrumental",
+    "name": "Instrumental",
+    "demoUrl": "https://instrumental.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram",
+      "youtube"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  },
+  "jazz": {
+    "id": "jazz",
+    "name": "Jazz",
+    "demoUrl": "https://jazz.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Etude",
+        "Equipe",
+        "Expertises",
+        "Actus",
+        "Tarifs",
+        "Contact",
+        "Paiement en ligne"
+      ],
+      "submenus": {
+        "Expertises": [
+          "Recouvrement des impayes",
+          "Execution des jugements",
+          "Mesures d'execution"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 8,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram",
+      "youtube"
+    ],
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "features": [
+      "Schema.org LegalService",
+      "Cookie management",
+      "IE warning",
+      "Breadcrumb nav",
+      "Multi-language",
+      "Document request system"
+    ],
+    "expertises": [
+      "Recouvrement des impayes",
+      "Execution des jugements",
+      "Mesures d'execution"
+    ],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  },
+  "kalimba": {
+    "id": "kalimba",
+    "name": "Kalimba",
+    "demoUrl": "https://kalimba.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  },
+  "kanjira": {
+    "id": "kanjira",
+    "name": "Kanjira",
+    "demoUrl": "https://kanjira.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "L'Etude",
+        "Notre equipe",
+        "Nos expertises",
+        "Tarifs",
+        "Nos actualites",
+        "Nos services numeriques",
+        "Paiement en ligne",
+        "Contact"
+      ],
+      "submenus": {
+        "Nos expertises": [
+          "Recouvrement des impayes",
+          "Execution des jugements",
+          "Mesures d'execution"
+        ],
+        "Nos services numeriques": [
+          "Espace constats",
+          "Demande de constat"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 8,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-constats",
+      "demande-constat",
+      "tarifs",
+      "multilingue",
+      "logos-clients"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [
+      "Schema.org LegalService",
+      "Geo-location (Google Maps coords)",
+      "Cookie consent",
+      "IE warning",
+      "Google Analytics",
+      "Lazy loading",
+      "Client logos carousel",
+      "SVG decorations"
+    ],
+    "expertises": [
+      "Recouvrement des impayes",
+      "Execution des jugements",
+      "Mesures d'execution"
+    ],
+    "services": [
+      "paiement-en-ligne",
+      "espace-constats",
+      "demande-constat"
+    ],
+    "legatus": false
+  },
+  "mambo": {
+    "id": "mambo",
+    "name": "Mambo",
+    "demoUrl": "https://mambo.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  },
+  "ocarina": {
+    "id": "ocarina",
+    "name": "Ocarina",
+    "demoUrl": "https://ocarina.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  },
+  "recital": {
+    "id": "recital",
+    "name": "Recital",
+    "demoUrl": "https://recital.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  },
+  "refrain": {
+    "id": "refrain",
+    "name": "Refrain",
+    "demoUrl": "https://refrain.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  },
+  "tempo": {
+    "id": "tempo",
+    "name": "Tempo",
+    "demoUrl": "https://tempo.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  },
+  "virtuose": {
+    "id": "virtuose",
+    "name": "Virtuose",
+    "demoUrl": "https://virtuose.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "tarifs",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "expertises": [],
+    "services": [
+      "paiement-en-ligne"
+    ],
+    "legatus": false
+  }
+}

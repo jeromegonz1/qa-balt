@@ -1,0 +1,178 @@
+{
+  "tool_version": "2.5.1",
+  "site": "http://camping-arquebuse.site.azko.fr",
+  "mode": "tech-only",
+  "date": "2026-03-09",
+  "issues": [
+    {
+      "id": "ALT_GENERIC",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "ALT_MISSING",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "BASE_HREF_PREPROD",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "BLANK_NO_NOOPENER",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "CANONICAL_PREPROD",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "CATALOGUE_AZKO_VISIBLE",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "DEFAULT_PAGE_ACCESSIBLE",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "FAVICON_BAD_FORMAT",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "FOOTER_EMAIL_EMPTY",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "FORM_HTTP",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "H3_FICHIERS_JOINTS",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "HN_HIERARCHY",
+      "severity": "MINEUR",
+      "count": 13
+    },
+    {
+      "id": "IMG_NO_DIMENSIONS",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "LINK_EXTERNAL_BROKEN",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "LINK_INTERNAL_REDIRECT",
+      "severity": "MINEUR",
+      "count": 11
+    },
+    {
+      "id": "LINK_MAILTO_INVALID",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "LINK_NO_TEXT",
+      "severity": "IMPORTANT",
+      "count": 2
+    },
+    {
+      "id": "LINK_TEL_FORMAT",
+      "severity": "IMPORTANT",
+      "count": 2
+    },
+    {
+      "id": "MENTIONS_INCOMPLETE",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "META_DESC_MISSING",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "META_KEYWORDS_EMPTY",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "MODULE_EMPTY",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "NOINDEX",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "OG_PREPROD",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "PRIVACY_404",
+      "severity": "BLOQUANT",
+      "count": 1
+    },
+    {
+      "id": "PROTOCOL_RELATIVE",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "ROBOTS_DISALLOW_ALL",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "SCHEMA_GPS_ZERO",
+      "severity": "BLOQUANT",
+      "count": 1
+    },
+    {
+      "id": "SECURITY_HEADERS_MISSING",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "SITE_HTTP",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "SOCIAL_EMPTY",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "SOCIAL_LINK_DEFAULT",
+      "severity": "IMPORTANT",
+      "count": 30
+    },
+    {
+      "id": "SSL_WRONG_DOMAIN",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "ZOOM_BLOCKED",
+      "severity": "IMPORTANT",
+      "count": 1
+    }
+  ]
+}

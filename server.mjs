@@ -33,6 +33,7 @@ import {
   getTask,
   extractPreprodUrl,
   extractModelUrl,
+  extractSiteContext,
   postComment,
   updateTaskStatus,
   formatReportForComment,
@@ -43,6 +44,7 @@ import {
 // ═══════════════════════════════════════
 const PORT = process.env.PORT || 3847;
 const __dirname = import.meta.dirname;
+const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8'));
 
 // Charger .env manuellement (pas de dépendance dotenv)
 const envPath = resolve(__dirname, '.env');
@@ -70,7 +72,7 @@ const activeJobs = new Map();
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
-    version: '2.0.0',
+    version: pkg.version,
     activeJobs: activeJobs.size,
     uptime: Math.round(process.uptime()),
   });
@@ -160,11 +162,12 @@ async function runQAForTask(taskId) {
   activeJobs.set(taskId, { started: new Date().toISOString(), status: 'fetching_task' });
 
   // 1. Récupérer les détails de la tâche
-  let task, preprodUrl, modelUrl;
+  let task, preprodUrl, modelUrl, siteContext;
   try {
     task = await getTask(taskId);
     preprodUrl = extractPreprodUrl(task);
     modelUrl = extractModelUrl(task);
+    siteContext = extractSiteContext(task);
   } catch (err) {
     activeJobs.delete(taskId);
     console.error(`   Impossible de récupérer la tâche ClickUp: ${err.message}`);
@@ -202,7 +205,7 @@ async function runQAForTask(taskId) {
 
   // 3. Lancer le QA
   try {
-    const report = await runQA(preprodUrl, modelUrl);
+    const report = await runQA(preprodUrl, modelUrl, siteContext);
 
     // 4. Poster le rapport
     const comment = formatReportForComment(report, preprodUrl);
@@ -237,11 +240,14 @@ async function runQAForTask(taskId) {
 /**
  * Lance qa.mjs en subprocess et retourne le rapport
  */
-function runQA(url, modelUrl = null) {
-  return new Promise((resolve, reject) => {
+function runQA(url, modelUrl = null, siteContext = {}) {
+  return new Promise((promiseResolve, reject) => {
     const qaPath = new URL('./qa.mjs', import.meta.url).pathname;
     const qaArgs = [qaPath, url];
     if (modelUrl) qaArgs.push('--model-url', modelUrl);
+    if (Object.keys(siteContext).length > 0) {
+      qaArgs.push('--site-context', JSON.stringify(siteContext));
+    }
     const child = spawn('node', qaArgs, {
       cwd: __dirname,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -262,7 +268,7 @@ function runQA(url, modelUrl = null) {
 
       try {
         const report = readFileSync(reportPath, 'utf-8');
-        resolve(report);
+        promiseResolve(report);
       } catch (err) {
         reject(new Error(`QA terminé (code ${code}) mais rapport introuvable: ${reportPath}`));
       }
@@ -278,7 +284,7 @@ function runQA(url, modelUrl = null) {
 app.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════════════╗
-║       QA-BALT Server v2.0                        ║
+║       QA-BALT Server v${pkg.version.padEnd(27)}║
 ╠══════════════════════════════════════════════════╣
 ║  Port: ${String(PORT).padEnd(42)}║
 ║  ClickUp: ${process.env.CLICKUP_API_TOKEN ? '✅ Token configuré' : '⚠️  Token manquant (.env)'}${' '.repeat(process.env.CLICKUP_API_TOKEN ? 23 : 18)}║

@@ -21,6 +21,7 @@ import { runVisualChecks } from './lib/visual-checks.mjs';
 import { runA11yChecks } from './lib/a11y-checks.mjs';
 import { runSeRankingChecks } from './lib/seranking-checks.mjs';
 import { generateReport } from './lib/report.mjs';
+import { findModel } from './lib/models.mjs';
 import { writeFileSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
 
@@ -33,6 +34,8 @@ const techOnly = args.includes('--tech-only');
 const visualOnly = args.includes('--visual-only');
 const modelUrl = args.find(a => a.startsWith('--model-url='))?.split('=')[1]
   || (args.indexOf('--model-url') >= 0 ? args[args.indexOf('--model-url') + 1] : null);
+const siteContextIdx = args.indexOf('--site-context');
+const siteContextArg = siteContextIdx >= 0 ? args[siteContextIdx + 1] : null;
 
 if (!url) {
   console.log(`
@@ -45,10 +48,12 @@ Usage:
   node qa.mjs <url-preprod> --tech-only              # Checks techniques seuls
   node qa.mjs <url-preprod> --visual-only            # Checks visuels seuls
   node qa.mjs <url-preprod> --model-url <url>        # Compare avec le modèle
+  node qa.mjs <url-preprod> --site-context '{...}'   # Contexte ClickUp (JSON)
 
 Exemple:
   node qa.mjs http://camping-arquebuse.site.azko.fr
   node qa.mjs http://cabinet-x.site.azko.fr --model-url http://alimon.site.azko.fr
+  node qa.mjs http://site.azko.fr --site-context '{"model":"bellini","sector":"camping"}'
 `);
   process.exit(1);
 }
@@ -56,9 +61,21 @@ Exemple:
 // Normaliser l'URL
 const baseUrl = url.replace(/\/$/, '');
 
-// Contexte site (enrichi par ClickUp dans server.mjs, vide en CLI)
-const siteContext = {};
+// Contexte site (enrichi par ClickUp via --site-context, vide en CLI)
+let siteContext = {};
+if (siteContextArg) {
+  try {
+    siteContext = JSON.parse(siteContextArg);
+  } catch {
+    console.warn('   ⚠️ --site-context JSON invalide, contexte ignoré');
+  }
+}
 const domain = new URL(baseUrl).hostname;
+
+// Enrichir avec la référence modèle si détecté
+if (siteContext.model) {
+  siteContext.modelRef = findModel(siteContext.model);
+}
 const siteSlug = domain.split('.')[0];
 const timestamp = new Date().toISOString().slice(0, 10);
 
