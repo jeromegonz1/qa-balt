@@ -1,0 +1,401 @@
+{
+  "bellini": {
+    "id": "bellini",
+    "name": "Bellini",
+    "demoUrl": "https://bellini.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Le camping",
+        "Parcelles",
+        "Locations",
+        "La region",
+        "Actus",
+        "Contact et acces"
+      ],
+      "submenus": {
+        "Le camping": [
+          "Les services",
+          "Les activites",
+          "Le camping en photos",
+          "FAQ"
+        ],
+        "La region": [
+          "Patrimoine",
+          "Gastronomie",
+          "Autour du camping"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 8,
+    "modules": [
+      "galerie-photos",
+      "hebergements",
+      "recherche-annonces",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "formulaire-contact",
+      "qualitelis",
+      "geolocation",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr",
+      "en",
+      "es",
+      "de"
+    ],
+    "features": [
+      "Schema.org Campground",
+      "Cookie management",
+      "Lazy loading",
+      "GSAP animations",
+      "Twitter widget",
+      "Qualitelis"
+    ],
+    "bookingEngine": null,
+    "qualitelis": true
+  },
+  "blue-lagoon": {
+    "id": "blue-lagoon",
+    "name": "Blue Lagoon",
+    "demoUrl": "https://blue-lagoon.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Le camping",
+        "Emplacements",
+        "Locations",
+        "La region",
+        "Actualites",
+        "Contact & Acces"
+      ],
+      "submenus": {
+        "Le camping": [
+          "Nos engagements",
+          "Nos services & equipements",
+          "Le camping en photos",
+          "FAQ"
+        ],
+        "La region": [
+          "Autour du camping",
+          "Activites",
+          "Patrimoine",
+          "Gastronomie"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 8,
+    "modules": [
+      "galerie-photos",
+      "hebergements",
+      "recherche-annonces",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "formulaire-contact",
+      "qualitelis",
+      "geolocation",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "features": [
+      "Lazy loading",
+      "Deferred script loading",
+      "Google Maps",
+      "Bootstrap",
+      "Geolocation"
+    ],
+    "bookingEngine": null,
+    "qualitelis": true
+  },
+  "cosmopolitan": {
+    "id": "cosmopolitan",
+    "name": "Cosmopolitan",
+    "demoUrl": "https://cosmopolitan.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Le camping",
+        "Emplacements",
+        "Locations",
+        "La region",
+        "Actus",
+        "Localisation et contact"
+      ],
+      "submenus": {
+        "Le camping": [
+          "Les services",
+          "Les activites",
+          "Le camping en photos",
+          "FAQ"
+        ],
+        "La region": [
+          "Gastronomie",
+          "Patrimoine",
+          "Autour du camping"
+        ]
+      }
+    },
+    "hero": "slide (bootstrap-carousel)",
+    "sectionsAccueil": 8,
+    "modules": [
+      "galerie-photos",
+      "hebergements",
+      "recherche-annonces",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "formulaire-contact",
+      "qualitelis",
+      "reservation-en-ligne",
+      "geolocation",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr",
+      "en",
+      "es",
+      "de"
+    ],
+    "features": [
+      "Schema.org Campground",
+      "GSAP staggered animations",
+      "Lazy loading",
+      "Deferred scripts",
+      "Geolocation",
+      "Thelis booking",
+      "Qualitelis",
+      "Multi-carousel Slick"
+    ],
+    "bookingEngine": "Thelis",
+    "qualitelis": true
+  },
+  "daiquiri": {
+    "id": "daiquiri",
+    "name": "Daiquiri",
+    "demoUrl": "https://daiquiri.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Le camping",
+        "Parcelles",
+        "Bungalows",
+        "La region",
+        "Actualites",
+        "Services"
+      ],
+      "submenus": {
+        "Le camping": [
+          "Nos engagements",
+          "Les services",
+          "Les activites",
+          "Le camping en photos",
+          "FAQ"
+        ],
+        "La region": [
+          "Patrimoine",
+          "Gastronomie",
+          "Autour du camping"
+        ],
+        "Services": [
+          "Telephone",
+          "Contact",
+          "Reservation en ligne"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 7,
+    "modules": [
+      "galerie-photos",
+      "hebergements",
+      "recherche-annonces",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "formulaire-contact",
+      "qualitelis",
+      "reservation-en-ligne",
+      "geolocation",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr",
+      "en",
+      "es"
+    ],
+    "features": [
+      "Schema.org Campground",
+      "Geolocation",
+      "Cookie management",
+      "IE warning",
+      "Lazy loading",
+      "Dynamic iframe height",
+      "Quality label widget"
+    ],
+    "bookingEngine": null,
+    "qualitelis": true
+  },
+  "flamingo": {
+    "id": "flamingo",
+    "name": "Flamingo",
+    "demoUrl": "https://flamingo.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Le camping",
+        "Emplacements",
+        "Locations",
+        "La region",
+        "Actualites",
+        "Contact & Acces"
+      ],
+      "submenus": {
+        "Le camping": [
+          "Nos engagements",
+          "Nos services & equipements",
+          "Le camping en photos",
+          "FAQ"
+        ],
+        "La region": [
+          "Autour du camping",
+          "Activites",
+          "Patrimoine",
+          "Gastronomie"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 8,
+    "modules": [
+      "galerie-photos",
+      "hebergements",
+      "recherche-annonces",
+      "actualites",
+      "google-maps",
+      "formulaire-contact",
+      "geolocation",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "features": [
+      "Schema.org Campground",
+      "Lazy loading",
+      "iFrame dynamic height",
+      "Cookie management",
+      "Quality sections",
+      "Environmental commitment section"
+    ],
+    "bookingEngine": null,
+    "qualitelis": false
+  },
+  "serenity": {
+    "id": "serenity",
+    "name": "Serenity",
+    "demoUrl": "https://serenity.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Le camping",
+        "Emplacements",
+        "Locations",
+        "La region",
+        "Actualites",
+        "Contact & Acces"
+      ],
+      "submenus": {
+        "Le camping": [
+          "Les services",
+          "Les activites",
+          "Le camping en photos",
+          "FAQ"
+        ],
+        "La region": [
+          "Patrimoine",
+          "Gastronomie",
+          "Autour du camping"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 6,
+    "modules": [
+      "galerie-photos",
+      "hebergements",
+      "recherche-annonces",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "formulaire-contact",
+      "reservation-en-ligne",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "features": [
+      "Schema.org Campground",
+      "Google Maps API",
+      "Google Analytics",
+      "Cookie management",
+      "Progressive image loading",
+      "Responsive breakpoints",
+      "3-star camping theme"
+    ],
+    "bookingEngine": null,
+    "qualitelis": false
+  }
+}

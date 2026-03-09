@@ -33,6 +33,7 @@ import {
   getTask,
   extractPreprodUrl,
   extractModelUrl,
+  extractSiteContext,
   postComment,
   updateTaskStatus,
   formatReportForComment,
@@ -43,6 +44,7 @@ import {
 // ═══════════════════════════════════════
 const PORT = process.env.PORT || 3847;
 const __dirname = import.meta.dirname;
+const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8'));
 
 // Charger .env manuellement (pas de dépendance dotenv)
 const envPath = resolve(__dirname, '.env');
@@ -61,6 +63,28 @@ app.use(express.json());
 
 // Jobs en cours (pour éviter les doublons)
 const activeJobs = new Map();
+const MAX_CONCURRENT_JOBS = parseInt(process.env.MAX_CONCURRENT_JOBS) || 3;
+const JOB_STALE_MS = 15 * 60 * 1000; // 15 min
+
+// ── Auth middleware (si QA_BALT_API_KEY défini) ──
+const API_KEY = process.env.QA_BALT_API_KEY;
+function requireAuth(req, res, next) {
+  if (!API_KEY) return next(); // pas de clé = pas d'auth (dev local)
+  const key = req.headers['x-api-key'] || req.query.api_key;
+  if (key === API_KEY) return next();
+  return res.status(401).json({ error: 'API key invalide ou manquante (header X-API-Key)' });
+}
+
+// ── Nettoyage des jobs périmés ──
+function cleanupStaleJobs() {
+  const now = Date.now();
+  for (const [taskId, job] of activeJobs) {
+    if (now - new Date(job.started).getTime() > JOB_STALE_MS) {
+      console.log(`🧹 Job périmé supprimé : ${taskId} (lancé ${job.started})`);
+      activeJobs.delete(taskId);
+    }
+  }
+}
 
 // ═══════════════════════════════════════
 // Routes
@@ -70,7 +94,7 @@ const activeJobs = new Map();
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
-    version: '2.0.0',
+    version: pkg.version,
     activeJobs: activeJobs.size,
     uptime: Math.round(process.uptime()),
   });
@@ -85,7 +109,7 @@ app.get('/health', (req, res) => {
  *   "task_name": "Site ...",   ← Nom de la tâche (optionnel)
  * }
  */
-app.post('/api/qa', async (req, res) => {
+app.post('/api/qa', requireAuth, async (req, res) => {
   const taskId = req.body.task_id || req.body.taskId;
 
   if (!taskId) {
@@ -97,6 +121,17 @@ app.post('/api/qa', async (req, res) => {
     return res.status(409).json({
       error: 'QA déjà en cours pour cette tâche',
       started: activeJobs.get(taskId).started,
+    });
+  }
+
+  // Nettoyer les jobs périmés (>15 min)
+  cleanupStaleJobs();
+
+  // Rate limit : max N jobs simultanés
+  if (activeJobs.size >= MAX_CONCURRENT_JOBS) {
+    return res.status(429).json({
+      error: `Limite atteinte (${MAX_CONCURRENT_JOBS} audits simultanés)`,
+      activeJobs: activeJobs.size,
     });
   }
 
@@ -119,10 +154,15 @@ app.post('/api/qa', async (req, res) => {
  * Payload : { "url": "http://xxx.site.azko.fr" }
  * Retourne le rapport directement (bloquant)
  */
-app.post('/api/qa/direct', async (req, res) => {
+app.post('/api/qa/direct', requireAuth, async (req, res) => {
   const url = req.body.url;
   if (!url) {
     return res.status(400).json({ error: 'url manquant' });
+  }
+  try {
+    new URL(url);
+  } catch {
+    return res.status(400).json({ error: 'URL invalide' });
   }
 
   const directModelUrl = req.body.model_url || req.body.modelUrl || null;
@@ -160,11 +200,12 @@ async function runQAForTask(taskId) {
   activeJobs.set(taskId, { started: new Date().toISOString(), status: 'fetching_task' });
 
   // 1. Récupérer les détails de la tâche
-  let task, preprodUrl, modelUrl;
+  let task, preprodUrl, modelUrl, siteContext;
   try {
     task = await getTask(taskId);
     preprodUrl = extractPreprodUrl(task);
     modelUrl = extractModelUrl(task);
+    siteContext = extractSiteContext(task);
   } catch (err) {
     activeJobs.delete(taskId);
     console.error(`   Impossible de récupérer la tâche ClickUp: ${err.message}`);
@@ -202,7 +243,7 @@ async function runQAForTask(taskId) {
 
   // 3. Lancer le QA
   try {
-    const report = await runQA(preprodUrl, modelUrl);
+    const report = await runQA(preprodUrl, modelUrl, siteContext);
 
     // 4. Poster le rapport
     const comment = formatReportForComment(report, preprodUrl);
@@ -237,11 +278,14 @@ async function runQAForTask(taskId) {
 /**
  * Lance qa.mjs en subprocess et retourne le rapport
  */
-function runQA(url, modelUrl = null) {
-  return new Promise((resolve, reject) => {
+function runQA(url, modelUrl = null, siteContext = {}) {
+  return new Promise((promiseResolve, reject) => {
     const qaPath = new URL('./qa.mjs', import.meta.url).pathname;
     const qaArgs = [qaPath, url];
     if (modelUrl) qaArgs.push('--model-url', modelUrl);
+    if (Object.keys(siteContext).length > 0) {
+      qaArgs.push('--site-context', JSON.stringify(siteContext));
+    }
     const child = spawn('node', qaArgs, {
       cwd: __dirname,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -262,7 +306,7 @@ function runQA(url, modelUrl = null) {
 
       try {
         const report = readFileSync(reportPath, 'utf-8');
-        resolve(report);
+        promiseResolve(report);
       } catch (err) {
         reject(new Error(`QA terminé (code ${code}) mais rapport introuvable: ${reportPath}`));
       }
@@ -273,14 +317,15 @@ function runQA(url, modelUrl = null) {
 }
 
 // ═══════════════════════════════════════
-// Start
+// Start + Graceful shutdown
 // ═══════════════════════════════════════
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════════════╗
-║       QA-BALT Server v2.0                        ║
+║       QA-BALT Server v${pkg.version.padEnd(27)}║
 ╠══════════════════════════════════════════════════╣
 ║  Port: ${String(PORT).padEnd(42)}║
+║  Auth: ${API_KEY ? '🔒 API key active' : '⚠️  Pas de clé (dev)'}${' '.repeat(API_KEY ? 24 : 23)}║
 ║  ClickUp: ${process.env.CLICKUP_API_TOKEN ? '✅ Token configuré' : '⚠️  Token manquant (.env)'}${' '.repeat(process.env.CLICKUP_API_TOKEN ? 23 : 18)}║
 ╠══════════════════════════════════════════════════╣
 ║  Endpoints:                                      ║
@@ -291,3 +336,28 @@ app.listen(PORT, () => {
 ╚══════════════════════════════════════════════════╝
   `);
 });
+
+// Graceful shutdown
+function shutdown(signal) {
+  console.log(`\n🛑 ${signal} reçu — arrêt gracieux...`);
+  if (activeJobs.size > 0) {
+    console.log(`   ${activeJobs.size} job(s) en cours — attente de fin...`);
+  }
+  server.close(() => {
+    console.log('   Serveur HTTP fermé.');
+    // Les subprocess qa.mjs finiront naturellement
+    // On attend un peu pour les commentaires ClickUp en cours
+    setTimeout(() => {
+      console.log('   Bye.');
+      process.exit(0);
+    }, activeJobs.size > 0 ? 5000 : 0);
+  });
+  // Force exit après 30s max
+  setTimeout(() => {
+    console.error('   ⚠️ Timeout — arrêt forcé.');
+    process.exit(1);
+  }, 30000);
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

@@ -1,0 +1,954 @@
+{
+  "alguazil": {
+    "id": "alguazil",
+    "name": "Alguazil",
+    "demoUrl": "https://alguazil.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "annonces-immo",
+      "honoraires",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "competences": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": true
+  },
+  "alimon": {
+    "id": "alimon",
+    "name": "Alimon",
+    "demoUrl": "https://alimon.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Presentation",
+        "Competences",
+        "Actus",
+        "RDV en ligne",
+        "Paiement en ligne",
+        "Espace client",
+        "Contact"
+      ],
+      "submenus": {
+        "Competences": [
+          "Droit de la propriete intellectuelle",
+          "Droit du sport",
+          "Droit international et de l'union europeenne",
+          "Droit de la famille",
+          "Droit du travail"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 5,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "features": [
+      "Schema.org Organization",
+      "Cookie management",
+      "Meet laW RDV",
+      "Lazy loading"
+    ],
+    "competences": [
+      "Droit de la propriete intellectuelle",
+      "Droit du sport",
+      "Droit international et de l'union europeenne",
+      "Droit de la famille",
+      "Droit du travail"
+    ],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": false
+  },
+  "alternative": {
+    "id": "alternative",
+    "name": "Alternative",
+    "demoUrl": "https://alternative.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Cabinet",
+        "Equipe",
+        "Competences",
+        "Actus",
+        "Honoraires",
+        "Annonces immo",
+        "Services",
+        "Contact"
+      ],
+      "submenus": {
+        "Competences": [
+          "Droit de la famille",
+          "Droit immobilier",
+          "Droit des affaires",
+          "Droit de la consommation",
+          "Droit social",
+          "Gestion de patrimoine"
+        ],
+        "Services": [
+          "Telephone",
+          "RDV en ligne",
+          "Paiement en ligne",
+          "Espace client"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 5,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "annonces-immo",
+      "honoraires"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [
+      "Schema.org Organization",
+      "GSAP scroll animations",
+      "IE warning",
+      "Cookie management"
+    ],
+    "competences": [
+      "Droit de la famille",
+      "Droit immobilier",
+      "Droit des affaires",
+      "Droit de la consommation",
+      "Droit social",
+      "Gestion de patrimoine"
+    ],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": true
+  },
+  "apodo": {
+    "id": "apodo",
+    "name": "Apodo",
+    "demoUrl": "https://apodo.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Cabinet",
+        "Equipe",
+        "Competences",
+        "Actus",
+        "Honoraires",
+        "Contact",
+        "Annonces immobilieres",
+        "Services"
+      ],
+      "submenus": {
+        "Competences": [
+          "Droit immobilier",
+          "Droit de la famille",
+          "Droit penal",
+          "Droit des affaires"
+        ],
+        "Services": [
+          "RDV en ligne",
+          "Espace client",
+          "Paiement en ligne"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 7,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "annonces-immo",
+      "honoraires",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "features": [
+      "Google Analytics",
+      "Cookie management",
+      "Select2",
+      "Lazy loading",
+      "Geolocation"
+    ],
+    "competences": [
+      "Droit immobilier",
+      "Droit de la famille",
+      "Droit penal",
+      "Droit des affaires"
+    ],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": true
+  },
+  "bravo": {
+    "id": "bravo",
+    "name": "Bravo",
+    "demoUrl": "https://bravo.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Cabinet",
+        "Equipe",
+        "Competences",
+        "Actus",
+        "Annonces immo",
+        "Contact",
+        "Services"
+      ],
+      "submenus": {
+        "Competences": [
+          "Droit de la famille",
+          "Droit immobilier",
+          "Droit penal",
+          "Droit commercial"
+        ],
+        "Services": [
+          "RDV en ligne",
+          "Espace client",
+          "Paiement en ligne"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 6,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "features": [
+      "Lazy loading",
+      "Cookie management",
+      "PMR accessibility"
+    ],
+    "competences": [
+      "Droit de la famille",
+      "Droit immobilier",
+      "Droit penal",
+      "Droit commercial"
+    ],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": true
+  },
+  "faena": {
+    "id": "faena",
+    "name": "Faena",
+    "demoUrl": "https://faena.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Cabinet",
+        "Equipe",
+        "Competences",
+        "Actus",
+        "Contact",
+        "Annonces immo",
+        "Services"
+      ],
+      "submenus": {
+        "Competences": [
+          "Droit immobilier",
+          "Droit de la famille",
+          "Droit penal",
+          "Droit des affaires"
+        ],
+        "Services": [
+          "RDV en ligne",
+          "Espace client",
+          "Paiement en ligne",
+          "FR/EN"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 6,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "annonces-immo",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "features": [
+      "Schema.org Organization",
+      "Meet laW RDV",
+      "IE warning",
+      "Cookie management",
+      "Lazy loading"
+    ],
+    "competences": [
+      "Droit immobilier",
+      "Droit de la famille",
+      "Droit penal",
+      "Droit des affaires"
+    ],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": true
+  },
+  "maestro": {
+    "id": "maestro",
+    "name": "Maestro",
+    "demoUrl": "https://maestro.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Le cabinet",
+        "Notre equipe",
+        "Nos competences",
+        "Honoraires",
+        "Nos actualites",
+        "Annonces immobilieres",
+        "Nos services numeriques",
+        "Contact"
+      ],
+      "submenus": {
+        "Nos competences": [
+          "Droit de la famille",
+          "Droit penal",
+          "Droit immobilier",
+          "Droit des affaires",
+          "Droit public",
+          "Mediation"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 7,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "annonces-immo",
+      "honoraires"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [
+      "Schema.org Organization",
+      "Google Analytics/GTM",
+      "Cookie management",
+      "IE warning",
+      "Select2",
+      "Slick multiple"
+    ],
+    "competences": [
+      "Droit de la famille",
+      "Droit penal",
+      "Droit immobilier",
+      "Droit des affaires",
+      "Droit public",
+      "Mediation"
+    ],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": true
+  },
+  "manso": {
+    "id": "manso",
+    "name": "Manso",
+    "demoUrl": "https://manso.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "annonces-immo",
+      "honoraires",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "competences": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne"
+    ],
+    "annoncesImmo": true
+  },
+  "mauzac": {
+    "id": "mauzac",
+    "name": "Mauzac",
+    "demoUrl": "https://mauzac.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Etude",
+        "Equipe",
+        "Expertises",
+        "Actus",
+        "Services",
+        "Tarifs",
+        "Annonces immo",
+        "Contact"
+      ],
+      "submenus": {
+        "Expertises": [
+          "Droit immobilier",
+          "Droit de la famille",
+          "Droit du patrimoine",
+          "Droit des affaires",
+          "Droit des NTIC"
+        ],
+        "Services": [
+          "RDV en ligne",
+          "Acces professionnel",
+          "Espace client",
+          "Paiement en ligne",
+          "Liens utiles"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 5,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "annonces-immo",
+      "honoraires",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "features": [
+      "Schema.org Notary profile",
+      "Twitter embed",
+      "Cookie management",
+      "Lazy loading"
+    ],
+    "competences": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": true
+  },
+  "navara": {
+    "id": "navara",
+    "name": "Navara",
+    "demoUrl": "https://navara.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Cabinet",
+        "Equipe",
+        "Competences",
+        "Annonces immobilieres",
+        "Honoraires",
+        "Actualites",
+        "Contactez nous",
+        "Mentions legales",
+        "Plan du site"
+      ],
+      "submenus": {
+        "Competences": [
+          "Droit immobilier",
+          "Droit de la famille",
+          "Droit civil",
+          "Droit commercial"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 6,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "annonces-immo",
+      "honoraires"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [
+      "Cookie management",
+      "IE warning",
+      "Lazy loading",
+      "Google Maps"
+    ],
+    "competences": [
+      "Droit immobilier",
+      "Droit de la famille",
+      "Droit civil",
+      "Droit commercial"
+    ],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": true
+  },
+  "paseo": {
+    "id": "paseo",
+    "name": "Paseo",
+    "demoUrl": "https://paseo.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "temoignages",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "annonces-immo",
+      "honoraires",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "competences": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": true
+  },
+  "ruedo": {
+    "id": "ruedo",
+    "name": "Ruedo",
+    "demoUrl": "https://ruedo.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "annonces-immo",
+      "honoraires",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "competences": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": true
+  },
+  "suerte": {
+    "id": "suerte",
+    "name": "Suerte",
+    "demoUrl": "https://suerte.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "annonces-immo",
+      "honoraires",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "competences": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": true
+  },
+  "verdad": {
+    "id": "verdad",
+    "name": "Verdad",
+    "demoUrl": "https://verdad.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [
+        "Accueil",
+        "Le cabinet",
+        "Equipe",
+        "Competences",
+        "Actualites",
+        "Annonces immo",
+        "Honoraires",
+        "Contact"
+      ],
+      "submenus": {
+        "Competences": [
+          "Droit de la famille",
+          "Gestion de patrimoine",
+          "Droit immobilier",
+          "Droit des affaires"
+        ]
+      }
+    },
+    "hero": "fade (slick)",
+    "sectionsAccueil": 8,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "annonces-immo",
+      "honoraires",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram",
+      "youtube"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [
+      "RDV en ligne",
+      "Online payment",
+      "Client extranet",
+      "Real estate auction listings",
+      "Geolocation property search",
+      "Lazy loading"
+    ],
+    "competences": [
+      "Droit de la famille",
+      "Gestion de patrimoine",
+      "Droit immobilier",
+      "Droit des affaires"
+    ],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": true
+  },
+  "vuelta": {
+    "id": "vuelta",
+    "name": "Vuelta",
+    "demoUrl": "https://vuelta.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client",
+      "annonces-immo",
+      "honoraires",
+      "multilingue"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "competences": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "espace-client"
+    ],
+    "annoncesImmo": true
+  },
+  "zaino": {
+    "id": "zaino",
+    "name": "Zaino",
+    "demoUrl": "https://zaino.septeo-digitalagency.fr",
+    "variants": [],
+    "pages": {
+      "menu": [],
+      "submenus": {}
+    },
+    "hero": "slider (slick)",
+    "sectionsAccueil": null,
+    "modules": [
+      "diaporama",
+      "equipe",
+      "competences",
+      "actualites",
+      "google-maps",
+      "rdv-en-ligne",
+      "paiement-en-ligne",
+      "annonces-immo",
+      "honoraires"
+    ],
+    "social": [
+      "facebook",
+      "twitter",
+      "linkedin",
+      "instagram"
+    ],
+    "languages": [
+      "fr"
+    ],
+    "features": [],
+    "competences": [],
+    "services": [
+      "rdv-en-ligne",
+      "paiement-en-ligne"
+    ],
+    "annoncesImmo": true
+  }
+}

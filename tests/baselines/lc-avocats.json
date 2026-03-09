@@ -1,0 +1,168 @@
+{
+  "tool_version": "2.5.1",
+  "site": "http://lc-avocats.site.azko.fr",
+  "mode": "tech-only",
+  "date": "2026-03-09",
+  "issues": [
+    {
+      "id": "ALT_GENERIC",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "BASE_HREF_PREPROD",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "BLANK_NO_NOOPENER",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "CANONICAL_PREPROD",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "DEFAULT_PAGE_ACCESSIBLE",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "FORM_EMPTY",
+      "severity": "IMPORTANT",
+      "count": 2
+    },
+    {
+      "id": "FORM_HTTP",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "H1_MISSING",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "HN_HIERARCHY",
+      "severity": "MINEUR",
+      "count": 6
+    },
+    {
+      "id": "IMG_HEAVY",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "IMG_NO_DIMENSIONS",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "LINK_EMPTY_ANCHOR",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "LINK_EXTERNAL_BROKEN",
+      "severity": "IMPORTANT",
+      "count": 2
+    },
+    {
+      "id": "LINK_TEL_FORMAT",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "MENTIONS_INCOMPLETE",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "META_DESC_DUPLICATE",
+      "severity": "MINEUR",
+      "count": 9
+    },
+    {
+      "id": "META_DESC_MISSING",
+      "severity": "IMPORTANT",
+      "count": 2
+    },
+    {
+      "id": "META_KEYWORDS_EMPTY",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "MODULE_EMPTY",
+      "severity": "MINEUR",
+      "count": 28
+    },
+    {
+      "id": "NOINDEX",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "OG_PREPROD",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "PROTOCOL_RELATIVE",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "ROBOTS_DISALLOW_ALL",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "SECURITY_HEADERS_MISSING",
+      "severity": "MINEUR",
+      "count": 1
+    },
+    {
+      "id": "SITE_HTTP",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "SOCIAL_LINK_BROKEN",
+      "severity": "IMPORTANT",
+      "count": 1
+    },
+    {
+      "id": "SSL_EXPIRED",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "SSL_WRONG_DOMAIN",
+      "severity": "CHECKLIST_MEP",
+      "count": 1
+    },
+    {
+      "id": "TITLE_DUPLICATE",
+      "severity": "IMPORTANT",
+      "count": 9
+    },
+    {
+      "id": "TITLE_LONG",
+      "severity": "MINEUR",
+      "count": 10
+    },
+    {
+      "id": "TITLE_MISSING",
+      "severity": "IMPORTANT",
+      "count": 2
+    },
+    {
+      "id": "ZOOM_BLOCKED",
+      "severity": "IMPORTANT",
+      "count": 1
+    }
+  ]
+}

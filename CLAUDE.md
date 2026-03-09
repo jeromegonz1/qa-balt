@@ -8,7 +8,9 @@ Version actuelle : **v2.5.1** — 109+ checks automatises.
 - `qa.mjs` : orchestrateur CLI (flags: --tech-only, --visual-only, --model-url)
 - `server.mjs` : webhook Express ClickUp (port 3847)
 - `lib/config.mjs` : configuration centralisee (seuils, blacklists, patterns — extensible)
-- `lib/` : 11 modules (config, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, seranking-checks, report, clickup)
+- `lib/models.mjs` : loader reference modeles AZKO (cache memoire, auto-decouverte)
+- `lib/` : 12 modules (config, models, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, seranking-checks, report, clickup)
+- `data/` : base de reference modeles JSON par vertical (models-camping, models-avocat, models-cdj, models-notaire)
 - `docs/SPRINT-P1-P2-P3.md` : brief technique Sprint Playwright v3 (fiabilisation, preuve, rerun)
 
 ## Pipeline d'execution
@@ -47,6 +49,17 @@ URL → Crawl (sitemap+nav) → Status HTTP → tech-checks → link-checks → 
 - CATEGORY_RULES : regex-based mapping issue ID → categorie (extensible, fallback → TECHNIQUE)
 - Structure : BLOQUANTS → CHECKLIST MEP → DETAIL PAR CATEGORIE → PAGES → PRIORITES
 - Template scope : >40% pages → "(template — N pages)"
+
+## Base de reference modeles (data/ + lib/models.mjs)
+- 52 modeles AZKO indexes dans 4 fichiers JSON : `data/models-{camping,avocat,cdj,notaire}.json`
+- Format : objet plat cle par ID modele → `{ "bellini": { id, name, demoUrl, pages, modules, ... } }`
+- Loader `lib/models.mjs` : `findModel(id)` cherche dans tous les verticals, `getModel(vertical, id)`, `loadModels(vertical)`
+- Cache memoire (1 lecture par vertical par execution), auto-decouverte via `data/models-*.json`
+- Integration : `siteContext.modelRef = findModel(siteContext.model)` dans qa.mjs
+- Rapport enrichi : demo URL cliquable, langues attendues, modules attendus (Phase 1 = informatif, pas de checks auto)
+- Ajouter un modele = ajouter un objet dans le JSON, 0 code a modifier
+- Champs communs : id, name, demoUrl, variants, pages, hero, sectionsAccueil, modules, social, languages, features
+- Champs specifiques : camping (bookingEngine, qualitelis), avocat (competences, services, annoncesImmo), cdj (expertises, services, legatus), notaire (expertises, services, annoncesImmo)
 
 ## ClickUp integration (clickup.mjs)
 - `extractSiteContext(task)` : extrait model, sector, title, existingUrl, phone, emails
@@ -90,14 +103,19 @@ URL → Crawl (sitemap+nav) → Status HTTP → tech-checks → link-checks → 
 - Service : systemd qa-balt + Nginx reverse proxy (port 3847)
 - Deploy : `git pull` + `npm install` + `sudo systemctl restart qa-balt`
 
-## Tests
-- Pas de framework de test. Le robot EST un outil de test.
-- Panel de 7 sites multi-secteurs :
+## Tests de non-regression
+- Runner : `tests/run-regression.mjs` — comparaison snapshot issue IDs vs baseline
+- Baselines : `tests/baselines/{site}.json` — issue IDs + severite, commites dans git
+- Sites de reference : camping-arquebuse (34 issues), lc-avocats (32 issues)
+- Commandes :
+  - `npm test` — lancer les tests (mode tech-only, ~2-3 min)
+  - `npm run test:update` — regenerer les baselines apres changement volontaire
+  - `node tests/run-regression.mjs --site camping-arquebuse` — un seul site
+- Resultat : exit 0 si aucune regression, exit 1 si issues disparues
+- Panel de 7 sites multi-secteurs pour tests manuels :
   - **Camping** : camping-les-cinq-vallees, camping-municipal-hippodrome, camping-arquebuse
   - **Avocat** : lc-avocats, rousselavocat, ordre-avocats-limoges
   - **Hotel** : hotel-lys-chablis
-- Valider sur des sites reels : `node qa.mjs http://camping-les-cinq-vallees.site.azko.fr --tech-only`
-- Varier les sites de test pour couvrir differents secteurs et templates
 
 ## Roadmap — Sprint Playwright v3 (docs/SPRINT-P1-P2-P3.md)
 - **P1 Fiabilisation** (v3.0.0) : addInitScript GSAP, console/pageerror, route() noise blocker, burger locator, networkidle
