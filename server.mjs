@@ -37,6 +37,8 @@ import {
   postComment,
   updateTaskStatus,
   formatReportForComment,
+  postSummaryComment,
+  uploadAttachment,
 } from './lib/clickup.mjs';
 
 // ═══════════════════════════════════════
@@ -171,8 +173,9 @@ app.post('/api/qa/direct', requireAuth, async (req, res) => {
   res.json({ status: 'accepted', url, model_url: directModelUrl, message: 'QA lancé — rapport dans /reports' });
 
   try {
-    const report = await runQA(url, directModelUrl);
+    const { markdown, htmlPath } = await runQA(url, directModelUrl);
     console.log(`✅ QA direct terminé pour ${url}`);
+    if (htmlPath) console.log(`   Rapport HTML : ${htmlPath}`);
   } catch (err) {
     console.error(`❌ Erreur QA direct:`, err.message);
   }
@@ -243,15 +246,45 @@ async function runQAForTask(taskId) {
 
   // 3. Lancer le QA
   try {
-    const report = await runQA(preprodUrl, modelUrl, siteContext);
+    const { markdown, htmlPath } = await runQA(preprodUrl, modelUrl, siteContext);
 
-    // 4. Poster le rapport
-    const comment = formatReportForComment(report, preprodUrl);
-    await postComment(taskId, comment);
-    console.log(`   ✅ Rapport posté sur la tâche ClickUp`);
+    // 4. Poster le résumé texte brut + attacher le rapport HTML
+    const hasBloquants = /BLOQUANT \| [1-9]/.test(markdown);
+
+    // Extraire les stats depuis le rapport markdown (tableau SYNTHÈSE)
+    const countMatch = (pattern) => {
+      const m = markdown.match(pattern);
+      return m ? parseInt(m[1]) : 0;
+    };
+    const stats = {
+      siteName: siteContext.title || task.name || new URL(preprodUrl).hostname,
+      siteUrl: preprodUrl,
+      bloquants: countMatch(/BLOQUANT \| (\d+)/),
+      checklistMep: countMatch(/CHECKLIST MEP \| (\d+)/),
+      importants: countMatch(/IMPORTANT \| (\d+)/),
+      mineurs: countMatch(/MINEUR \| (\d+)/),
+      total: countMatch(/\*\*TOTAL\*\* \| \*\*(\d+)\*\*/),
+    };
+
+    await postSummaryComment(taskId, stats);
+    console.log(`   ✅ Résumé posté sur la tâche ClickUp`);
+
+    // Attacher le rapport HTML complet
+    if (htmlPath) {
+      try {
+        const htmlFileName = htmlPath.split('/').pop();
+        await uploadAttachment(taskId, htmlPath, htmlFileName);
+        console.log(`   ✅ Rapport HTML attaché à la tâche`);
+      } catch (attachErr) {
+        console.error(`   ⚠️ Erreur upload HTML: ${attachErr.message}`);
+        // Fallback : poster le rapport markdown tronqué en commentaire
+        const comment = formatReportForComment(markdown, preprodUrl);
+        await postComment(taskId, comment);
+        console.log(`   ↩️ Fallback : rapport markdown posté en commentaire`);
+      }
+    }
 
     // 5. Optionnel : changer le statut de la tâche
-    const hasBloquants = /BLOQUANT \| [1-9]/.test(report);
     const statusPostQA = process.env.CLICKUP_STATUS_QA_OK;
     const statusPostQAKO = process.env.CLICKUP_STATUS_QA_KO;
 
@@ -303,10 +336,12 @@ function runQA(url, modelUrl = null, siteContext = {}) {
       const siteSlug = domain.split('.')[0];
       const timestamp = new Date().toISOString().slice(0, 10);
       const reportPath = new URL(`./reports/${siteSlug}-${timestamp}.md`, import.meta.url).pathname;
+      const htmlReportPath = new URL(`./reports/${siteSlug}-${timestamp}.html`, import.meta.url).pathname;
 
       try {
-        const report = readFileSync(reportPath, 'utf-8');
-        promiseResolve(report);
+        const markdown = readFileSync(reportPath, 'utf-8');
+        const htmlPath = existsSync(htmlReportPath) ? htmlReportPath : null;
+        promiseResolve({ markdown, htmlPath });
       } catch (err) {
         reject(new Error(`QA terminé (code ${code}) mais rapport introuvable: ${reportPath}`));
       }
