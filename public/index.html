@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QA-BALT — Audit QA</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f6fa; color: #333; min-height: 100vh; display: flex; flex-direction: column; }
+    header { background: #1B3A5C; color: #fff; padding: 1.2rem 2rem; display: flex; align-items: center; gap: 1rem; }
+    header h1 { font-size: 1.4rem; font-weight: 600; }
+    header span { font-size: 0.85rem; opacity: 0.7; }
+    main { max-width: 900px; width: 100%; margin: 2rem auto; padding: 0 1rem; flex: 1; }
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); padding: 1.5rem; margin-bottom: 1.5rem; }
+    label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.9rem; }
+    input[type="text"] { width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; }
+    input[type="text"]:focus { outline: none; border-color: #1B3A5C; box-shadow: 0 0 0 2px rgba(27,58,92,0.15); }
+    .toggle-model { font-size: 0.85rem; color: #1B3A5C; cursor: pointer; margin-top: 0.6rem; user-select: none; }
+    .toggle-model:hover { text-decoration: underline; }
+    .model-field { display: none; margin-top: 0.8rem; }
+    .model-field.visible { display: block; }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.7rem 1.6rem; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.2s, opacity 0.2s; }
+    .btn-primary { background: #1B3A5C; color: #fff; margin-top: 1rem; }
+    .btn-primary:hover:not(:disabled) { background: #24506e; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-download { background: #e8f0fe; color: #1B3A5C; text-decoration: none; font-size: 0.85rem; padding: 0.5rem 1rem; }
+    .btn-download:hover { background: #d0e2fc; }
+    .spinner { display: none; width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #logs-section { display: none; }
+    #logs { background: #1e1e2e; color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 0.8rem; line-height: 1.5; padding: 1rem; border-radius: 6px; max-height: 420px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; }
+    #logs .log-error { color: #f38ba8; }
+    #logs .log-ok { color: #a6e3a1; }
+    #logs .log-info { color: #89b4fa; }
+
+    #result { display: none; }
+    .verdict { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 6px; }
+    .verdict-ok { background: #d4edda; color: #155724; }
+    .verdict-ko { background: #f8d7da; color: #721c24; }
+    .verdict-error { background: #fff3cd; color: #856404; }
+    .downloads { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+
+    footer { text-align: center; padding: 1rem; font-size: 0.8rem; color: #999; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>QA-BALT</h1>
+    <span>Audit QA automatise</span>
+  </header>
+
+  <main>
+    <div class="card">
+      <label for="url">URL du site a auditer</label>
+      <input type="text" id="url" placeholder="http://camping-arquebuse.site.azko.fr" autofocus>
+      <div class="toggle-model" onclick="toggleModel()">+ URL modele (optionnel)</div>
+      <div class="model-field" id="model-field">
+        <label for="model-url">URL du modele de reference</label>
+        <input type="text" id="model-url" placeholder="http://modele-bellini.site.azko.fr">
+      </div>
+      <button class="btn btn-primary" id="btn-start" onclick="startAudit()">
+        <span class="spinner" id="spinner"></span>
+        <span id="btn-label">Analyser</span>
+      </button>
+    </div>
+
+    <div id="logs-section" class="card">
+      <label>Logs en temps reel</label>
+      <div id="logs"></div>
+    </div>
+
+    <div id="result" class="card">
+      <div class="verdict" id="verdict"></div>
+      <div class="downloads" id="downloads"></div>
+    </div>
+  </main>
+
+  <footer>QA-BALT &mdash; Septeo Digital</footer>
+
+  <script>
+    const urlInput = document.getElementById('url');
+    const modelUrlInput = document.getElementById('model-url');
+    const btnStart = document.getElementById('btn-start');
+    const btnLabel = document.getElementById('btn-label');
+    const spinner = document.getElementById('spinner');
+    const logsSection = document.getElementById('logs-section');
+    const logsEl = document.getElementById('logs');
+    const resultEl = document.getElementById('result');
+    const verdictEl = document.getElementById('verdict');
+    const downloadsEl = document.getElementById('downloads');
+
+    let eventSource = null;
+
+    function toggleModel() {
+      document.getElementById('model-field').classList.toggle('visible');
+    }
+
+    function appendLog(text) {
+      const line = document.createElement('span');
+      line.textContent = text + '\n';
+      if (/error|erreur|fail|echou|crash/i.test(text)) line.className = 'log-error';
+      else if (/ok$|pass|succe|termin/i.test(text)) line.className = 'log-ok';
+      else if (/^\[|^={3,}|^\s*→|info/i.test(text)) line.className = 'log-info';
+      logsEl.appendChild(line);
+      logsEl.scrollTop = logsEl.scrollHeight;
+    }
+
+    function setRunning(running) {
+      btnStart.disabled = running;
+      spinner.style.display = running ? 'inline-block' : 'none';
+      btnLabel.textContent = running ? 'Audit en cours...' : 'Analyser';
+    }
+
+    function startAudit() {
+      const url = urlInput.value.trim();
+      if (!url) { urlInput.focus(); return; }
+
+      // Reset UI
+      logsEl.innerHTML = '';
+      logsSection.style.display = 'block';
+      resultEl.style.display = 'none';
+      downloadsEl.innerHTML = '';
+      setRunning(true);
+
+      // Build SSE URL
+      const params = new URLSearchParams({ url });
+      const modelUrl = modelUrlInput.value.trim();
+      if (modelUrl) params.set('model_url', modelUrl);
+
+      eventSource = new EventSource('/api/qa/stream?' + params.toString());
+
+      eventSource.addEventListener('log', (e) => {
+        appendLog(e.data);
+      });
+
+      eventSource.addEventListener('done', (e) => {
+        eventSource.close();
+        eventSource = null;
+        setRunning(false);
+
+        try {
+          const data = JSON.parse(e.data);
+          const hasBloquants = data.hasBloquants;
+          verdictEl.textContent = hasBloquants ? 'Audit termine — BLOQUANT(S) detecte(s)' : 'Audit termine — Aucun bloquant';
+          verdictEl.className = 'verdict ' + (hasBloquants ? 'verdict-ko' : 'verdict-ok');
+
+          if (data.mdFile) {
+            const a = document.createElement('a');
+            a.href = '/reports/' + data.mdFile;
+            a.className = 'btn btn-download';
+            a.download = data.mdFile;
+            a.textContent = 'Telecharger .md';
+            downloadsEl.appendChild(a);
+          }
+          if (data.htmlFile) {
+            const a = document.createElement('a');
+            a.href = '/reports/' + data.htmlFile;
+            a.className = 'btn btn-download';
+            a.download = data.htmlFile;
+            a.textContent = 'Telecharger .html';
+            downloadsEl.appendChild(a);
+          }
+          resultEl.style.display = 'block';
+        } catch (err) {
+          appendLog('[ERREUR] Impossible de parser le resultat');
+        }
+      });
+
+      eventSource.addEventListener('error', (e) => {
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+        setRunning(false);
+        const msg = e.data || 'Connexion perdue';
+        appendLog('[ERREUR] ' + msg);
+        verdictEl.textContent = 'Erreur — ' + msg;
+        verdictEl.className = 'verdict verdict-error';
+        resultEl.style.display = 'block';
+      });
+
+      // Native EventSource error (connection lost)
+      eventSource.onerror = () => {
+        if (eventSource && eventSource.readyState === EventSource.CLOSED) {
+          // Already handled by 'error' event above
+        } else if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+          setRunning(false);
+          appendLog('[ERREUR] Connexion SSE perdue');
+        }
+      };
+    }
+
+    // Enter key to submit
+    urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') startAudit(); });
+    modelUrlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') startAudit(); });
+  </script>
+</body>
+</html>

@@ -28,7 +28,7 @@
 import express from 'express';
 import { spawn } from 'child_process';
 import { readFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import { resolve, basename } from 'path';
 import { validatePublicUrl } from './lib/utils.mjs';
 import {
   getTask,
@@ -192,6 +192,149 @@ app.get('/api/jobs', requireAuth, (req, res) => {
   }
   res.json({ jobs });
 });
+
+/**
+ * GET /api/qa/stream — SSE streaming audit
+ *
+ * Query params : url (obligatoire), model_url (optionnel)
+ * Envoie les logs en temps réel via Server-Sent Events
+ */
+app.get('/api/qa/stream', async (req, res) => {
+  const url = req.query.url;
+  if (!url) {
+    return res.status(400).json({ error: 'url manquant (query param)' });
+  }
+  try {
+    await validatePublicUrl(url);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+
+  // Rate limit
+  cleanupStaleJobs();
+  if (activeJobs.size >= MAX_CONCURRENT_JOBS) {
+    return res.status(429).json({
+      error: `Limite atteinte (${MAX_CONCURRENT_JOBS} audits simultanés)`,
+    });
+  }
+
+  const modelUrl = req.query.model_url || null;
+  const jobId = `stream-${Date.now()}`;
+  activeJobs.set(jobId, { started: new Date().toISOString(), status: 'running', url });
+
+  // SSE headers
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+  });
+
+  console.log(`\n🖥️  SSE audit lancé pour ${url}`);
+
+  const qaPath = new URL('./qa.mjs', import.meta.url).pathname;
+  const qaArgs = [qaPath, url];
+  if (modelUrl) qaArgs.push('--model-url', modelUrl);
+
+  const child = spawn('node', qaArgs, {
+    cwd: __dirname,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    timeout: 600000,
+  });
+
+  let buffer = { stdout: '', stderr: '' };
+
+  function sendLines(stream, data) {
+    buffer[stream] += data.toString();
+    const lines = buffer[stream].split('\n');
+    buffer[stream] = lines.pop(); // garder le fragment incomplet
+    for (const line of lines) {
+      if (line.trim()) {
+        res.write(`event: log\ndata: ${line}\n\n`);
+      }
+    }
+  }
+
+  child.stdout.on('data', (d) => { process.stdout.write(d); sendLines('stdout', d); });
+  child.stderr.on('data', (d) => { process.stderr.write(d); sendLines('stderr', d); });
+
+  child.on('close', (code) => {
+    activeJobs.delete(jobId);
+
+    // Flush remaining buffer
+    for (const stream of ['stdout', 'stderr']) {
+      if (buffer[stream].trim()) {
+        res.write(`event: log\ndata: ${buffer[stream]}\n\n`);
+      }
+    }
+
+    // Trouver les fichiers rapport
+    try {
+      const domain = new URL(url.replace(/\/$/, '')).hostname;
+      const siteSlug = domain.split('.')[0];
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const mdFile = `${siteSlug}-${timestamp}.md`;
+      const htmlFile = `${siteSlug}-${timestamp}.html`;
+      const reportsDir = resolve(__dirname, 'reports');
+      const mdPath = resolve(reportsDir, mdFile);
+      const htmlPath = resolve(reportsDir, htmlFile);
+
+      if (existsSync(mdPath)) {
+        const markdown = readFileSync(mdPath, 'utf-8');
+        const hasBloquants = /BLOQUANT \| [1-9]\d*/.test(markdown);
+        const data = { mdFile, hasBloquants };
+        if (existsSync(htmlPath)) data.htmlFile = htmlFile;
+        res.write(`event: done\ndata: ${JSON.stringify(data)}\n\n`);
+      } else {
+        res.write(`event: error\ndata: QA termine (code ${code}) mais rapport introuvable\n\n`);
+      }
+    } catch (err) {
+      res.write(`event: error\ndata: ${err.message}\n\n`);
+    }
+
+    res.end();
+    console.log(`   SSE audit terminé pour ${url}`);
+  });
+
+  child.on('error', (err) => {
+    activeJobs.delete(jobId);
+    res.write(`event: error\ndata: ${err.message}\n\n`);
+    res.end();
+  });
+
+  // Cleanup si le client déconnecte
+  req.on('close', () => {
+    if (child.exitCode === null) {
+      console.log(`   Client SSE déconnecté — kill du subprocess`);
+      child.kill('SIGTERM');
+      activeJobs.delete(jobId);
+    }
+  });
+});
+
+/**
+ * GET /reports/:filename — Servir les rapports générés
+ *
+ * Sécurité : basename only, extensions .md/.html uniquement
+ */
+app.get('/reports/:filename', (req, res) => {
+  const filename = basename(req.params.filename);
+  if (filename !== req.params.filename) {
+    return res.status(400).json({ error: 'Nom de fichier invalide' });
+  }
+  if (!/\.(md|html)$/.test(filename)) {
+    return res.status(400).json({ error: 'Extension non autorisée (md ou html uniquement)' });
+  }
+  const filePath = resolve(__dirname, 'reports', filename);
+  if (!existsSync(filePath)) {
+    return res.status(404).json({ error: 'Rapport introuvable' });
+  }
+  const contentType = filename.endsWith('.html') ? 'text/html; charset=utf-8' : 'text/markdown; charset=utf-8';
+  res.setHeader('Content-Type', contentType);
+  res.send(readFileSync(filePath, 'utf-8'));
+});
+
+// ── Static frontend (après les routes API) ──
+app.use(express.static(resolve(__dirname, 'public')));
 
 // ═══════════════════════════════════════
 // Logique QA
@@ -379,9 +522,12 @@ const server = app.listen(PORT, () => {
 ║  ClickUp: ${process.env.CLICKUP_API_TOKEN ? '✅ Token configuré' : '⚠️  Token manquant (.env)'}${' '.repeat(process.env.CLICKUP_API_TOKEN ? 23 : 18)}║
 ╠══════════════════════════════════════════════════╣
 ║  Endpoints:                                      ║
+║  GET  /              ← Frontend QA               ║
+║  GET  /api/qa/stream ← SSE streaming audit       ║
 ║  POST /api/qa        ← Webhook ClickUp           ║
 ║  POST /api/qa/direct ← Test direct (url)         ║
 ║  GET  /api/jobs      ← Jobs en cours             ║
+║  GET  /reports/:file ← Rapports (.md/.html)      ║
 ║  GET  /health        ← Health check              ║
 ╚══════════════════════════════════════════════════╝
   `);
