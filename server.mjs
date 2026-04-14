@@ -29,6 +29,7 @@ import express from 'express';
 import { spawn } from 'child_process';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
+import { validatePublicUrl } from './lib/utils.mjs';
 import {
   getTask,
   extractPreprodUrl,
@@ -162,9 +163,9 @@ app.post('/api/qa/direct', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'url manquant' });
   }
   try {
-    new URL(url);
-  } catch {
-    return res.status(400).json({ error: 'URL invalide' });
+    await validatePublicUrl(url);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
   }
 
   const directModelUrl = req.body.model_url || req.body.modelUrl || null;
@@ -218,6 +219,20 @@ async function runQAForTask(taskId) {
       console.error('   → Configurer CLICKUP_API_TOKEN dans .env');
     }
     return;
+  }
+
+  // Validation SSRF sur l'URL preprod
+  if (preprodUrl) {
+    try {
+      await validatePublicUrl(preprodUrl);
+    } catch (err) {
+      activeJobs.delete(taskId);
+      console.error(`   SSRF bloque : ${err.message}`);
+      try {
+        await postComment(taskId, `⚠️ **QA automatique bloqué**\n\nURL non autorisée : ${err.message}`);
+      } catch (e) { /* best effort */ }
+      return;
+    }
   }
 
   if (!preprodUrl) {

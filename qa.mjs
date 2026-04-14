@@ -23,6 +23,7 @@ import { runSeRankingChecks } from './lib/seranking-checks.mjs';
 import { generateReport } from './lib/report.mjs';
 import { generateHtmlReport } from './lib/report-html.mjs';
 import { findModel } from './lib/models.mjs';
+import { validatePublicUrl } from './lib/utils.mjs';
 import { writeFileSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
 
@@ -59,13 +60,23 @@ Exemple:
   process.exit(1);
 }
 
-// Normaliser et valider l'URL
+// Normaliser et valider l'URL (+ protection SSRF)
 const baseUrl = url.replace(/\/$/, '');
 try {
-  new URL(baseUrl);
-} catch {
-  console.error(`❌ URL invalide : ${baseUrl}`);
+  await validatePublicUrl(baseUrl);
+} catch (err) {
+  console.error(`❌ ${err.message}`);
   process.exit(1);
+}
+
+// Valider modelUrl si present (SSRF)
+if (modelUrl) {
+  try {
+    await validatePublicUrl(modelUrl);
+  } catch (err) {
+    console.error(`❌ Model URL: ${err.message}`);
+    process.exit(1);
+  }
 }
 
 // Contexte site (enrichi par ClickUp via --site-context, vide en CLI)
