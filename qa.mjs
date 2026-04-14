@@ -21,6 +21,7 @@ import { runVisualChecks } from './lib/visual-checks.mjs';
 import { runA11yChecks } from './lib/a11y-checks.mjs';
 import { runSeRankingChecks } from './lib/seranking-checks.mjs';
 import { generateReport } from './lib/report.mjs';
+import { generateHtmlReport } from './lib/report-html.mjs';
 import { findModel } from './lib/models.mjs';
 import { writeFileSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
@@ -92,7 +93,7 @@ mkdirSync(reportsDir, { recursive: true });
 mkdirSync(screenshotsDir, { recursive: true });
 
 console.log(`\n🔍 QA-BALT — Audit de ${baseUrl}`);
-console.log(`   Rapport → reports/${siteSlug}-${timestamp}.md`);
+console.log(`   Rapport → reports/${siteSlug}-${timestamp}.md + .html`);
 console.log(`   Screenshots → screenshots/${siteSlug}-${timestamp}/\n`);
 
 // ═══════════════════════════════════════
@@ -272,6 +273,15 @@ const report = generateReport(baseUrl, {
 
 const reportPath = resolve(reportsDir, `${siteSlug}-${timestamp}.md`);
 writeFileSync(reportPath, report, 'utf-8');
+
+const reportData = {
+  techIssues, linkIssues, pageIssues, contentIssues,
+  techInfo, visualIssues, a11yIssues, perfIssues,
+  pages: pagesWithStatus, screenshotPaths, siteContext,
+};
+const htmlReport = generateHtmlReport(baseUrl, reportData);
+const htmlReportPath = resolve(reportsDir, `${siteSlug}-${timestamp}.html`);
+writeFileSync(htmlReportPath, htmlReport, 'utf-8');
 
 // ═══════════════════════════════════════
 // 10. Résumé final
