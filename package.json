@@ -10,7 +10,8 @@
     "server": "node server.mjs",
     "dev": "node --watch server.mjs",
     "test": "node tests/run-regression.mjs",
-    "test:update": "node tests/run-regression.mjs --update"
+    "test:update": "node tests/run-regression.mjs --update",
+    "test:unit": "node tests/test-utils.mjs && node tests/test-report.mjs"
   },
   "dependencies": {
     "@axe-core/playwright": "^4.11.1",
