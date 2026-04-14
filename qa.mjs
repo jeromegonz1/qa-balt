@@ -132,9 +132,14 @@ let techInfo = {};
 
 if (!visualOnly) {
   console.log('\n🔧 Checks techniques...');
-  const techResult = runTechChecks(baseUrl);
-  techIssues = techResult.issues;
-  techInfo = techResult.info;
+  try {
+    const techResult = runTechChecks(baseUrl);
+    techIssues = techResult.issues;
+    techInfo = techResult.info;
+  } catch (err) {
+    console.error(`   ⚠️ tech-checks error: ${err.message}`);
+    console.error('   Les checks techniques sont ignorés.');
+  }
 
   // Ajouter les pages 404 comme issues
   for (const p of koPages) {
@@ -160,13 +165,18 @@ let linkIssues = [];
 
 if (!visualOnly) {
   console.log('\n🔗 Checks des liens...');
-  const linkResult = runLinkChecks(baseUrl, pagesWithStatus, siteContext);
-  linkIssues = linkResult.issues;
+  try {
+    const linkResult = runLinkChecks(baseUrl, pagesWithStatus, siteContext);
+    linkIssues = linkResult.issues;
 
-  const linkBloquants = linkIssues.filter(i => i.severity === 'BLOQUANT').length;
-  const linkImportants = linkIssues.filter(i => i.severity === 'IMPORTANT').length;
-  const linkMineurs = linkIssues.filter(i => i.severity === 'MINEUR').length;
-  console.log(`   ${linkImportants} importants, ${linkMineurs} mineurs`);
+    const linkBloquants = linkIssues.filter(i => i.severity === 'BLOQUANT').length;
+    const linkImportants = linkIssues.filter(i => i.severity === 'IMPORTANT').length;
+    const linkMineurs = linkIssues.filter(i => i.severity === 'MINEUR').length;
+    console.log(`   ${linkImportants} importants, ${linkMineurs} mineurs`);
+  } catch (err) {
+    console.error(`   ⚠️ link-checks error: ${err.message}`);
+    console.error('   Les checks de liens sont ignorés.');
+  }
 }
 
 // ═══════════════════════════════════════
@@ -176,12 +186,17 @@ let pageIssues = [];
 
 if (!visualOnly) {
   console.log('\n👤 Checks par page (title, H1, formulaires, images, téléphone...)...');
-  const pageResult = runPageChecks(baseUrl, pagesWithStatus);
-  pageIssues = pageResult.issues;
+  try {
+    const pageResult = runPageChecks(baseUrl, pagesWithStatus);
+    pageIssues = pageResult.issues;
 
-  const pgImportants = pageIssues.filter(i => i.severity === 'IMPORTANT').length;
-  const pgMineurs = pageIssues.filter(i => i.severity === 'MINEUR').length;
-  console.log(`   ${pgImportants} importants, ${pgMineurs} mineurs`);
+    const pgImportants = pageIssues.filter(i => i.severity === 'IMPORTANT').length;
+    const pgMineurs = pageIssues.filter(i => i.severity === 'MINEUR').length;
+    console.log(`   ${pgImportants} importants, ${pgMineurs} mineurs`);
+  } catch (err) {
+    console.error(`   ⚠️ page-checks error: ${err.message}`);
+    console.error('   Les checks par page sont ignorés.');
+  }
 }
 
 // ═══════════════════════════════════════
@@ -191,13 +206,18 @@ let contentIssues = [];
 
 if (!visualOnly) {
   console.log('\n📄 Détection de contenu générique / non personnalisé...');
-  const contentResult = runContentChecks(baseUrl, pagesWithStatus, modelUrl);
-  contentIssues = contentResult.issues;
+  try {
+    const contentResult = runContentChecks(baseUrl, pagesWithStatus, modelUrl);
+    contentIssues = contentResult.issues;
 
-  const ctBloquants = contentIssues.filter(i => i.severity === 'BLOQUANT').length;
-  const ctImportants = contentIssues.filter(i => i.severity === 'IMPORTANT').length;
-  const ctMineurs = contentIssues.filter(i => i.severity === 'MINEUR').length;
-  console.log(`   ${ctBloquants} bloquants, ${ctImportants} importants, ${ctMineurs} mineurs`);
+    const ctBloquants = contentIssues.filter(i => i.severity === 'BLOQUANT').length;
+    const ctImportants = contentIssues.filter(i => i.severity === 'IMPORTANT').length;
+    const ctMineurs = contentIssues.filter(i => i.severity === 'MINEUR').length;
+    console.log(`   ${ctBloquants} bloquants, ${ctImportants} importants, ${ctMineurs} mineurs`);
+  } catch (err) {
+    console.error(`   ⚠️ content-checks error: ${err.message}`);
+    console.error('   Les checks de contenu sont ignorés.');
+  }
 }
 
 // ═══════════════════════════════════════

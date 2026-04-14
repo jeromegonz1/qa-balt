@@ -185,7 +185,7 @@ app.post('/api/qa/direct', requireAuth, async (req, res) => {
 /**
  * GET /api/jobs — Liste des jobs en cours
  */
-app.get('/api/jobs', (req, res) => {
+app.get('/api/jobs', requireAuth, (req, res) => {
   const jobs = [];
   for (const [taskId, job] of activeJobs) {
     jobs.push({ taskId, ...job });
@@ -264,7 +264,7 @@ async function runQAForTask(taskId) {
     const { markdown, htmlPath } = await runQA(preprodUrl, modelUrl, siteContext);
 
     // 4. Poster le résumé texte brut + attacher le rapport HTML
-    const hasBloquants = /BLOQUANT \| [1-9]/.test(markdown);
+    const hasBloquants = /BLOQUANT \| [1-9]\d*/.test(markdown);
 
     // Extraire les stats depuis le rapport markdown (tableau SYNTHÈSE)
     const countMatch = (pattern) => {
