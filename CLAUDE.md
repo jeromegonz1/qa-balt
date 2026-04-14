@@ -2,14 +2,15 @@
 
 ## Projet
 Robot QA automatise pour sites AZKO/BALT (CMS Septeo). Node.js 22 ESM.
-Version actuelle : **v2.6.0** — 112+ checks automatises.
+Version actuelle : **v2.7.0** — 112+ checks automatises.
 
 ## Architecture
 - `qa.mjs` : orchestrateur CLI (flags: --tech-only, --visual-only, --model-url)
 - `server.mjs` : webhook Express ClickUp (port 3847)
 - `lib/config.mjs` : configuration centralisee (seuils, blacklists, patterns — extensible)
 - `lib/models.mjs` : loader reference modeles AZKO (cache memoire, auto-decouverte)
-- `lib/` : 13 modules (config, models, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, seranking-checks, report, report-html, clickup)
+- `lib/utils.mjs` : securite (shellEscape, safeCurl, validatePublicUrl, isPrivateIp)
+- `lib/` : 14 modules (config, models, utils, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, seranking-checks, report, report-html, clickup)
 - `data/` : base de reference modeles JSON par vertical (models-camping, models-avocat, models-cdj, models-notaire)
 - `docs/SPRINT-P1-P2-P3.md` : brief technique Sprint Playwright v3 (fiabilisation, preuve, rerun)
 
@@ -22,7 +23,8 @@ URL → Crawl (sitemap+nav) → Status HTTP → tech-checks → link-checks → 
 
 ## Conventions code
 - ESM pur (`import`/`export`, pas de require)
-- HTTP via `curl` + `execSync` (pas d'axios/fetch pour les checks)
+- HTTP via `safeCurl()` dans `lib/utils.mjs` (shell-escaped curl + execSync, pas d'axios/fetch)
+- Protection SSRF : `validatePublicUrl()` bloque IPs privees/loopback/link-local + DNS rebinding
 - Playwright dans `visual-checks.mjs` (headed, GSAP) et `a11y-checks.mjs` (headless, axe-core)
 - Chaque issue = `{ severity, id, title, detail, page? }`
 - IDs en SCREAMING_SNAKE_CASE (ex: `SSL_EXPIRED`, `ALT_MISSING`)
@@ -40,8 +42,8 @@ URL → Crawl (sitemap+nav) → Status HTTP → tech-checks → link-checks → 
 ## Ajout d'un nouveau module
 1. Creer `lib/mon-module.mjs` avec `export function runMonModule(baseUrl, pages) { return { issues }; }`
 2. Importer dans `qa.mjs`
-3. Appeler dans la sequence avec le bon flag guard (!techOnly, !visualOnly)
-4. Ajouter les issues dans le `generateReport()`
+3. Ajouter un objet dans `MODULE_REGISTRY` (id, label, fn, guard, args, async)
+4. Le try/catch, logging et aggregation sont automatiques
 
 ## Rapport V3 (report.mjs)
 - Groupement intelligent : issues avec meme ID regroupees (N bruts → M groupes)
@@ -154,6 +156,13 @@ CLICKUP_STATUS_QA_OK=qa ok            # Statut post-QA sans bloquant (optionnel)
 CLICKUP_STATUS_QA_KO=qa ko            # Statut post-QA avec bloquant(s) (optionnel)
 ```
 
+## Securite (v2.7.0)
+- **Shell injection** : tous les appels curl passent par `safeCurl()` (lib/utils.mjs) qui echappe les URLs via single-quote wrapping
+- **SSRF** : `validatePublicUrl()` bloque localhost, IPs privees (RFC1918, link-local, loopback, IPv6 ULA) + DNS rebinding (resolution avant fetch)
+- **Points d'entree proteges** : qa.mjs (CLI), server.mjs (/api/qa/direct + webhook ClickUp)
+- **Auth API** : `requireAuth` middleware sur /api/qa, /api/qa/direct et /api/jobs (via `QA_BALT_API_KEY`, bypass en dev)
+- **Browser cleanup** : try/finally sur `browser.close()` dans visual-checks + a11y-checks (pas de fuite Chrome)
+
 ## Checks visuels (visual-checks.mjs)
 - **Chrome args** : `--disable-features=PrivateNetworkAccessPermissionPrompt` (bloque popup reseau local)
 - **Permissions** : `permissions: []` sur tous les contextes (refuse geoloc, reseau local, etc.)
@@ -190,12 +199,15 @@ CLICKUP_STATUS_QA_KO=qa ko            # Statut post-QA avec bloquant(s) (optionn
 - Service : systemd qa-balt + Nginx reverse proxy (port 3847)
 - Deploy : `git pull` + `npm install` + `sudo systemctl restart qa-balt`
 
-## Tests de non-regression
-- Runner : `tests/run-regression.mjs` — comparaison snapshot issue IDs vs baseline
-- Baselines : `tests/baselines/{site}.json` — issue IDs + severite, commites dans git
-- Sites de reference : camping-arquebuse (34 issues), lc-avocats (32 issues)
+## Tests
+- **Regression** : `tests/run-regression.mjs` — comparaison snapshot issue IDs vs baseline
+  - Baselines : `tests/baselines/{site}.json` — issue IDs + severite, commites dans git
+  - Sites de reference : camping-arquebuse (34 issues), lc-avocats (32 issues)
+- **Unit tests** : `tests/test-utils.mjs` (39 tests) + `tests/test-report.mjs` (52 tests)
+  - shellEscape, safeCurl, isPrivateIp, validatePublicUrl, categorize, groupIssues, generateReport
 - Commandes :
-  - `npm test` — lancer les tests (mode tech-only, ~2-3 min)
+  - `npm test` — regression tech-only (~2-3 min)
+  - `npm run test:unit` — tests unitaires utils + report (~5 sec)
   - `npm run test:update` — regenerer les baselines apres changement volontaire
   - `node tests/run-regression.mjs --site camping-arquebuse` — un seul site
 - Resultat : exit 0 si aucune regression, exit 1 si issues disparues

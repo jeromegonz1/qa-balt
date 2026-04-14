@@ -4,6 +4,24 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.7.0] - 2026-04-14
+
+### Security (P0)
+- **Shell injection** : nouveau `lib/utils.mjs` avec `shellEscape()` + `safeCurl()` — tous les 23 appels `execSync(curl ...)` migres vers le helper securise (single-quote wrapping)
+- **SSRF protection** : `validatePublicUrl()` + `isPrivateIp()` bloquent localhost, IPs privees (RFC1918, loopback, link-local, IPv6 ULA) et DNS rebinding. Integre dans qa.mjs (CLI) et server.mjs (webhook + direct)
+- **Auth /api/jobs** : endpoint protege par `requireAuth` middleware (exposait les URLs preprod)
+
+### Fixed (P1)
+- **hasBloquants regex** : `/BLOQUANT \| [1-9]/` → `/BLOQUANT \| [1-9]\d*/` — un site avec 10+ bloquants etait marque "QA OK"
+- **Browser leak** : `browser.close()` dans try/finally pour visual-checks et a11y-checks (fuite processus Chrome si crash hors try/catch page)
+- **Double-fetch link-checks** : cache HTML couche 1 reutilise en couche 6 (booking demo detection) — elimine N requetes curl redondantes
+- **Rapport partiel** : les 4 modules sync (tech, link, page, content) wrapes en try/catch — un module qui crash ne bloque plus l'audit complet
+
+### Changed
+- **Module registry** : `MODULE_REGISTRY` dans qa.mjs — ajouter un module = ajouter 1 objet. Try/catch, logging, aggregation automatiques
+- **Tests unitaires** : 91 tests (39 utils + 52 report) via `npm run test:unit`
+  - shellEscape, safeCurl, isPrivateIp, validatePublicUrl, categorize, groupIssues, generateReport
+
 ## [2.6.0] - 2026-04-14
 
 ### Fixed — Sprint 1 (correctifs critiques)
