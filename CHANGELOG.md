@@ -4,6 +4,41 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.6.0] - 2026-04-14
+
+### Fixed — Sprint 1 (correctifs critiques)
+- **extractPreprodUrl()** : regex elargie pour matcher "URL Integration" (nom reel du champ ClickUp, avant seul "URL Preprod" etait reconnu)
+- **SE Ranking apiCall()** : try/catch separe pour erreur curl vs JSON.parse malformed. Log des erreurs API (401, 429, HTML error pages) au lieu de crash silencieux
+- **Model crawl budget** : limite a 15 pages max + timeout global 60s pour eviter les crawls infinis sur les modeles avec beaucoup de pages
+
+### Added — Sprint 2 (rapport HTML)
+- **`lib/report-html.mjs`** : generateur de rapport HTML self-contained (~250 lignes)
+  - 0 dependance externe (pas de CDN, pas de font web, pas de JS)
+  - Header navy #1B3A5C (charte Septeo), badges severite colores
+  - Categories collapsibles via `<details><summary>` natif HTML
+  - Tableaux zebres, cartes synthese, verdict visuel
+  - `@media print` pour impression propre
+  - HTML escaping complet (helper `esc()`)
+- **Double output** : `qa.mjs` genere maintenant `.md` + `.html` en parallele
+- **Exports report.mjs** : `groupIssues`, `categorize`, `CATEGORY_RULES`, `CATEGORY_LABELS`, `CATEGORY_ORDER` exportes pour reutilisation
+
+### Added — Sprint 3 (integration ClickUp hybride)
+- **`postSummaryComment()`** : commentaire texte brut lisible (pas de markdown) avec resume severites + verdict
+- **`uploadAttachment()`** : upload du rapport HTML en piece jointe sur la tache ClickUp (multipart/form-data, Node 22 natif, 0 dep)
+- **Flow hybride** : le webhook poste un resume texte + attache le HTML complet (fallback markdown si upload echoue)
+- **Retrocompat** : `/api/qa/direct` fonctionne toujours, retourne `{ markdown, htmlPath }`
+
+### Added — Detection reservation demo camping
+- **`BOOKING_DEMO_PATTERNS`** : patterns configurables dans `config.mjs` (Thelis demosalons, eSeason demo, Ctoutvert demo, Amenitiz demo)
+- **`BOOKING_DEMO_LINK`** : detection liens `<a href>` pointant vers un moteur de resa demo (IMPORTANT)
+- **`BOOKING_DEMO_IFRAME`** : detection iframes/scripts de resa demo dans le HTML brut (IMPORTANT)
+- **Categorie CMS** : issues `BOOKING_*` categorisees dans CMS/AZKO dans le rapport
+
+### Changed
+- `package.json` : version 2.5.1 → 2.6.0
+- `config.mjs` : +`CONTENT_THRESHOLDS.maxModelPages` (15), +`CONTENT_THRESHOLDS.modelCrawlBudgetMs` (60000), +`BOOKING_DEMO_PATTERNS`
+- `server.mjs` : `runQA()` retourne `{ markdown, htmlPath }` au lieu de `string`
+
 ## [2.5.1] - 2026-03-06
 
 ### Fixed

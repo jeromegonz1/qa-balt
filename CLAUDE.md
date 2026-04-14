@@ -2,14 +2,14 @@
 
 ## Projet
 Robot QA automatise pour sites AZKO/BALT (CMS Septeo). Node.js 22 ESM.
-Version actuelle : **v2.5.1** — 109+ checks automatises.
+Version actuelle : **v2.6.0** — 112+ checks automatises.
 
 ## Architecture
 - `qa.mjs` : orchestrateur CLI (flags: --tech-only, --visual-only, --model-url)
 - `server.mjs` : webhook Express ClickUp (port 3847)
 - `lib/config.mjs` : configuration centralisee (seuils, blacklists, patterns — extensible)
 - `lib/models.mjs` : loader reference modeles AZKO (cache memoire, auto-decouverte)
-- `lib/` : 12 modules (config, models, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, seranking-checks, report, clickup)
+- `lib/` : 13 modules (config, models, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, seranking-checks, report, report-html, clickup)
 - `data/` : base de reference modeles JSON par vertical (models-camping, models-avocat, models-cdj, models-notaire)
 - `docs/SPRINT-P1-P2-P3.md` : brief technique Sprint Playwright v3 (fiabilisation, preuve, rerun)
 
@@ -17,7 +17,7 @@ Version actuelle : **v2.5.1** — 109+ checks automatises.
 ```
 URL → Crawl (sitemap+nav) → Status HTTP → tech-checks → link-checks → page-checks
 → content-checks → visual-checks (Playwright mobile+desktop) → a11y-checks (axe-core)
-→ seranking-checks (CWV) → Dedup + Groupement V3 → Rapport .md
+→ seranking-checks (CWV) → Dedup + Groupement V3 → Rapport .md + .html
 ```
 
 ## Conventions code
@@ -48,6 +48,23 @@ URL → Crawl (sitemap+nav) → Status HTTP → tech-checks → link-checks → 
 - 6 categories auto : TECHNIQUE, SEO, ACCESSIBILITE, UX, CONTENU, CMS
 - CATEGORY_RULES : regex-based mapping issue ID → categorie (extensible, fallback → TECHNIQUE)
 - Structure : BLOQUANTS → CHECKLIST MEP → DETAIL PAR CATEGORIE → PAGES → PRIORITES
+- Exports partages : `groupIssues`, `categorize`, `CATEGORY_RULES`, `CATEGORY_LABELS`, `CATEGORY_ORDER`
+
+## Rapport HTML (report-html.mjs)
+- Generateur HTML self-contained (0 dep externe, pas de CDN/JS/font web)
+- Importe `groupIssues` + constantes depuis `report.mjs` (memes donnees)
+- Design : header navy #1B3A5C, badges severite colores, cartes synthese
+- Categories collapsibles via `<details><summary>` natif (TECHNIQUE ouvert par defaut)
+- Tableaux zebres, verdict visuel (OK/KO), `@media print`
+- HTML escaping complet (helper `esc()`)
+- Output : `reports/{slug}-{date}.html` a cote du `.md`
+
+## Detection reservation demo (link-checks.mjs)
+- `BOOKING_DEMO_PATTERNS` dans config.mjs : patterns extensibles par moteur (Thelis, eSeason, Ctoutvert, Amenitiz)
+- Couche 6 dans link-checks : scanne liens `<a href>` + iframes/scripts pour les moteurs de resa demo
+- Pattern principal : `camping=demosalons` dans les URLs Thelis (demo salon pro)
+- Issues : `BOOKING_DEMO_LINK` (lien) + `BOOKING_DEMO_IFRAME` (iframe/script) — severite IMPORTANT
+- Categorisees dans CMS/AZKO dans le rapport
 - Template scope : >40% pages → "(template — N pages)"
 
 ## Base de reference modeles (data/ + lib/models.mjs)
@@ -61,11 +78,81 @@ URL → Crawl (sitemap+nav) → Status HTTP → tech-checks → link-checks → 
 - Champs communs : id, name, demoUrl, variants, pages, hero, sectionsAccueil, modules, social, languages, features
 - Champs specifiques : camping (bookingEngine, qualitelis), avocat (competences, services, annoncesImmo), cdj (expertises, services, legatus), notaire (expertises, services, annoncesImmo)
 
-## ClickUp integration (clickup.mjs)
-- `extractSiteContext(task)` : extrait model, sector, title, existingUrl, phone, emails
-- Gere dropdowns (type_config.options) et labels ClickUp
-- siteContext passe dans pipeline : link-checks (cross-client) + report (header enrichi)
-- `checkSocialProfileMatch()` dans link-checks : scrape og:title profil social, compare avec titre site
+## ClickUp integration (clickup.mjs + server.mjs)
+
+### API ClickUp v2
+- Base URL : `https://api.clickup.com/api/v2`
+- Auth : `Authorization: pk_...` (personal token, PAS de prefixe "Bearer")
+- Rate limits : 100 req/min (Free/Unlimited/Business), 1000 (Business+), 10000 (Enterprise)
+- Endpoints utilises :
+  - `GET /task/{taskId}` — details tache + custom_fields
+  - `POST /task/{taskId}/comment` — poster rapport (comment_text = texte brut, max ~10000 chars)
+  - `PUT /task/{taskId}` — changer statut (body: `{ status }`)
+
+### Workspace AZKO (verifie mars 2026)
+- Workspace ID : 2633453 ("AZKO's workspace")
+- Space "Production" (4687363) → Folder "SITES" (901512264968) → Lists par annee (2026, 2025, ...)
+- Statuts de tache : demande d'elements → stand-by → integration a venir → integration en cours → qa → recette → ...
+
+### Custom fields ClickUp (noms reels)
+| Champ ClickUp | Type | Variable extractee | Notes |
+|---|---|---|---|
+| **URL Integration** | short_text | `preprodUrl` | ⚠️ PAS "URL Preprod" — regex a adapter |
+| **Modele** | drop_down (75 options) | `siteContext.model` | value = orderindex, resolu via type_config.options |
+| **Client_type** | drop_down (20 options) | `siteContext.sector` | Avocats, Notaires, CDJ, Ordre, CRD, Societe... |
+| **Site_type** | drop_down (3 options) | `siteContext.siteType` | Modele, Sur mesure, Essentiel |
+| **Titre site** | text | `siteContext.title` | |
+| **Telephone** | short_text | `siteContext.phone` | |
+| **Email client** | email | `siteContext.clientEmail` | |
+| **Email formulaire** | short_text | `siteContext.formEmail` | |
+| **URL existante** | short_text | `siteContext.existingUrl` | Peut contenir "Non" |
+| **Interlocuteur** | short_text | `siteContext.contact` | |
+| **Produits site** | labels | — | IDs resolus via type_config.options (Integration, Multilingue, Annonce immo...) |
+| **Pays** | drop_down | — | France, Belgique |
+| **Nom Client** | short_text | — | |
+
+### Dropdown : format value
+- `value` = entier (orderindex dans type_config.options)
+- `extractFieldValue()` resout via `options.find(o => o.orderindex === field.value)` → retourne le nom
+- Modele dropdown : 75 modeles dont avocats (index 0-14), notaires (index 15-29), CDJ (index 30-46), camping (index 62-66), hotel (index 67+)
+
+### Pipeline webhook complet
+```
+ClickUp automation (statut → "QA") → POST /api/qa { task_id }
+  → server.mjs : getTask(taskId) → extractPreprodUrl(task) + extractModelUrl(task) + extractSiteContext(task)
+  → spawn qa.mjs <url> --site-context '{"model":"muscat","sector":"Notaires",...}'
+  → qa.mjs : findModel(siteContext.model) → siteContext.modelRef
+  → audit 8 modules → rapport .md
+  → server.mjs : postComment(taskId, rapport) + updateTaskStatus(taskId, "QA OK"/"QA KO")
+```
+
+### siteContext transmission (fix S1.1)
+- server.mjs passe le contexte via `--site-context` (JSON serialise) au subprocess qa.mjs
+- qa.mjs parse le flag et enrichit avec `findModel()` pour obtenir `modelRef`
+- Utilise dans : link-checks (cross-client social), report (header enrichi modele/langues/modules)
+
+### Flow ClickUp hybride (v2.6.0)
+- `postSummaryComment()` : texte brut lisible avec resume severites + verdict (pas de markdown)
+- `uploadAttachment()` : rapport HTML complet en piece jointe (multipart/form-data, Node 22 natif)
+- Flow : resume texte → HTML attache → fallback markdown tronque si upload echoue
+- `runQA()` retourne `{ markdown, htmlPath }` (breaking change interne, retrocompat /api/qa/direct)
+
+### Bugs connus a corriger
+- Base modeles : 52 modeles dans data/ vs 75 dans dropdown ClickUp (manque hotel + nouveaux)
+
+### Setup ClickUp (automation webhook)
+- Trigger : statut tache passe a "QA" (ou bouton manuel)
+- Action : POST webhook vers `https://<domaine>/api/qa`
+- Headers : `X-API-Key: <QA_BALT_API_KEY>` (si configure)
+- Body : `{ "task_id": "{{task_id}}" }`
+
+### Variables .env requises
+```
+CLICKUP_API_TOKEN=pk_xxx              # Token personnel ClickUp (obligatoire pour webhook)
+QA_BALT_API_KEY=xxx                   # Protection endpoint webhook (optionnel, recommande)
+CLICKUP_STATUS_QA_OK=qa ok            # Statut post-QA sans bloquant (optionnel)
+CLICKUP_STATUS_QA_KO=qa ko            # Statut post-QA avec bloquant(s) (optionnel)
+```
 
 ## Checks visuels (visual-checks.mjs)
 - **Chrome args** : `--disable-features=PrivateNetworkAccessPermissionPrompt` (bloque popup reseau local)
