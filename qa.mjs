@@ -28,6 +28,64 @@ import { writeFileSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
 
 // ═══════════════════════════════════════
+// Module registry — ajouter un module = ajouter un objet ici
+// ═══════════════════════════════════════
+const MODULE_REGISTRY = [
+  {
+    id: 'tech',
+    label: '🔧 Checks techniques',
+    fn: runTechChecks,
+    guard: ({ visualOnly }) => !visualOnly,
+    args: (ctx) => [ctx.baseUrl],
+  },
+  {
+    id: 'link',
+    label: '🔗 Checks des liens',
+    fn: runLinkChecks,
+    guard: ({ visualOnly }) => !visualOnly,
+    args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus, ctx.siteContext],
+  },
+  {
+    id: 'page',
+    label: '👤 Checks par page',
+    fn: runPageChecks,
+    guard: ({ visualOnly }) => !visualOnly,
+    args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus],
+  },
+  {
+    id: 'content',
+    label: '📄 Détection de contenu',
+    fn: runContentChecks,
+    guard: ({ visualOnly }) => !visualOnly,
+    args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus, ctx.modelUrl],
+  },
+  {
+    id: 'visual',
+    label: '🖥️  Checks visuels (Playwright)',
+    fn: runVisualChecks,
+    guard: ({ techOnly }) => !techOnly,
+    args: (ctx) => [ctx.baseUrl, ctx.okPages, ctx.screenshotsDir],
+    async: true,
+  },
+  {
+    id: 'a11y',
+    label: '♿ Checks accessibilité (axe-core)',
+    fn: runA11yChecks,
+    guard: ({ techOnly }) => !techOnly,
+    args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus],
+    async: true,
+  },
+  {
+    id: 'perf',
+    label: '⚡ Checks performance (SE Ranking)',
+    fn: runSeRankingChecks,
+    guard: ({ techOnly, visualOnly }) => !techOnly && !visualOnly,
+    args: (ctx) => [ctx.baseUrl],
+    async: true,
+  },
+];
+
+// ═══════════════════════════════════════
 // Parsing des arguments
 // ═══════════════════════════════════════
 const args = process.argv.slice(2);
@@ -125,23 +183,43 @@ if (koPages.length) {
 }
 
 // ═══════════════════════════════════════
-// 2. Checks techniques (curl-based)
+// 2. Exécution des modules via registry
 // ═══════════════════════════════════════
-let techIssues = [];
-let techInfo = {};
+const ctx = { baseUrl, pagesWithStatus, okPages, siteContext, modelUrl, screenshotsDir };
+const results = {};
 
-if (!visualOnly) {
-  console.log('\n🔧 Checks techniques...');
+for (const mod of MODULE_REGISTRY) {
+  if (!mod.guard({ techOnly, visualOnly })) continue;
+  console.log(`\n${mod.label}...`);
   try {
-    const techResult = runTechChecks(baseUrl);
-    techIssues = techResult.issues;
-    techInfo = techResult.info;
+    const result = mod.async
+      ? await mod.fn(...mod.args(ctx))
+      : mod.fn(...mod.args(ctx));
+    results[mod.id] = result;
+    // Log résumé
+    const issues = result.issues || [];
+    const b = issues.filter(i => i.severity === 'BLOQUANT').length;
+    const im = issues.filter(i => i.severity === 'IMPORTANT').length;
+    const mi = issues.filter(i => i.severity === 'MINEUR').length;
+    if (result.skipped) {
+      console.log(`   ⏭️  Skippé : ${result.reason}`);
+    } else if (result.screenshotPaths) {
+      console.log(`   ${issues.length} problèmes détectés, ${result.screenshotPaths.length} screenshots`);
+    } else if (result.pagesAudited != null) {
+      console.log(`   ${result.pagesAudited} pages auditées`);
+      console.log(`   ${b} bloquants, ${im} importants, ${mi} mineurs`);
+    } else {
+      console.log(`   ${b} bloquants, ${im} importants, ${mi} mineurs`);
+    }
   } catch (err) {
-    console.error(`   ⚠️ tech-checks error: ${err.message}`);
-    console.error('   Les checks techniques sont ignorés.');
+    console.error(`   ⚠️ ${mod.id} error: ${err.message}`);
+    results[mod.id] = { issues: [] };
   }
+}
 
-  // Ajouter les pages 404 comme issues
+// Ajouter les pages 404 comme issues tech (hors registry, dépend du crawl)
+const techIssues = results.tech?.issues || [];
+if (!visualOnly) {
   for (const p of koPages) {
     techIssues.push({
       severity: 'IMPORTANT',
@@ -151,138 +229,17 @@ if (!visualOnly) {
       detail: `HTTP ${p.status} — page inaccessible.`,
     });
   }
-
-  const bloquants = techIssues.filter(i => i.severity === 'BLOQUANT').length;
-  const importants = techIssues.filter(i => i.severity === 'IMPORTANT').length;
-  const mineurs = techIssues.filter(i => i.severity === 'MINEUR').length;
-  console.log(`   ${bloquants} bloquants, ${importants} importants, ${mineurs} mineurs`);
 }
 
-// ═══════════════════════════════════════
-// 3. Checks de liens (comme un humain qui clique partout)
-// ═══════════════════════════════════════
-let linkIssues = [];
-
-if (!visualOnly) {
-  console.log('\n🔗 Checks des liens...');
-  try {
-    const linkResult = runLinkChecks(baseUrl, pagesWithStatus, siteContext);
-    linkIssues = linkResult.issues;
-
-    const linkBloquants = linkIssues.filter(i => i.severity === 'BLOQUANT').length;
-    const linkImportants = linkIssues.filter(i => i.severity === 'IMPORTANT').length;
-    const linkMineurs = linkIssues.filter(i => i.severity === 'MINEUR').length;
-    console.log(`   ${linkImportants} importants, ${linkMineurs} mineurs`);
-  } catch (err) {
-    console.error(`   ⚠️ link-checks error: ${err.message}`);
-    console.error('   Les checks de liens sont ignorés.');
-  }
-}
-
-// ═══════════════════════════════════════
-// 4. Checks par page (humain qui navigue)
-// ═══════════════════════════════════════
-let pageIssues = [];
-
-if (!visualOnly) {
-  console.log('\n👤 Checks par page (title, H1, formulaires, images, téléphone...)...');
-  try {
-    const pageResult = runPageChecks(baseUrl, pagesWithStatus);
-    pageIssues = pageResult.issues;
-
-    const pgImportants = pageIssues.filter(i => i.severity === 'IMPORTANT').length;
-    const pgMineurs = pageIssues.filter(i => i.severity === 'MINEUR').length;
-    console.log(`   ${pgImportants} importants, ${pgMineurs} mineurs`);
-  } catch (err) {
-    console.error(`   ⚠️ page-checks error: ${err.message}`);
-    console.error('   Les checks par page sont ignorés.');
-  }
-}
-
-// ═══════════════════════════════════════
-// 5. Détection de contenu générique
-// ═══════════════════════════════════════
-let contentIssues = [];
-
-if (!visualOnly) {
-  console.log('\n📄 Détection de contenu générique / non personnalisé...');
-  try {
-    const contentResult = runContentChecks(baseUrl, pagesWithStatus, modelUrl);
-    contentIssues = contentResult.issues;
-
-    const ctBloquants = contentIssues.filter(i => i.severity === 'BLOQUANT').length;
-    const ctImportants = contentIssues.filter(i => i.severity === 'IMPORTANT').length;
-    const ctMineurs = contentIssues.filter(i => i.severity === 'MINEUR').length;
-    console.log(`   ${ctBloquants} bloquants, ${ctImportants} importants, ${ctMineurs} mineurs`);
-  } catch (err) {
-    console.error(`   ⚠️ content-checks error: ${err.message}`);
-    console.error('   Les checks de contenu sont ignorés.');
-  }
-}
-
-// ═══════════════════════════════════════
-// 6. Checks visuels (Playwright)
-// ═══════════════════════════════════════
-let visualIssues = [];
-let screenshotPaths = [];
-
-if (!techOnly) {
-  console.log('\n🖥️  Checks visuels (Playwright)...');
-  try {
-    const visualResult = await runVisualChecks(baseUrl, okPages, screenshotsDir);
-    visualIssues = visualResult.issues;
-    screenshotPaths = visualResult.screenshotPaths;
-    console.log(`   ${visualIssues.length} problèmes détectés, ${screenshotPaths.length} screenshots`);
-  } catch (err) {
-    console.log(`   ⚠️ Playwright error: ${err.message}`);
-    console.log('   Les checks visuels sont ignorés. Les checks techniques restent valides.');
-  }
-}
-
-// ═══════════════════════════════════════
-// 7. Checks accessibilité (axe-core)
-// ═══════════════════════════════════════
-let a11yIssues = [];
-
-if (!techOnly) {
-  console.log('\n♿ Checks accessibilité (axe-core WCAG 2.1 AA)...');
-  try {
-    const a11yResult = await runA11yChecks(baseUrl, pagesWithStatus);
-    a11yIssues = a11yResult.issues;
-    const a11yBloquants = a11yIssues.filter(i => i.severity === 'BLOQUANT').length;
-    const a11yImportants = a11yIssues.filter(i => i.severity === 'IMPORTANT').length;
-    const a11yMineurs = a11yIssues.filter(i => i.severity === 'MINEUR').length;
-    console.log(`   ${a11yResult.pagesAudited} pages auditées`);
-    console.log(`   ${a11yBloquants} bloquants, ${a11yImportants} importants, ${a11yMineurs} mineurs`);
-  } catch (err) {
-    console.log(`   ⚠️ axe-core error: ${err.message}`);
-    console.log('   Les checks accessibilité sont ignorés.');
-  }
-}
-
-// ═══════════════════════════════════════
-// 8. Performance SE Ranking (Core Web Vitals)
-// ═══════════════════════════════════════
-let perfIssues = [];
-
-if (!techOnly && !visualOnly) {
-  console.log('\n⚡ Checks performance (SE Ranking — Core Web Vitals)...');
-  try {
-    const perfResult = await runSeRankingChecks(baseUrl);
-    if (perfResult.skipped) {
-      console.log(`   ⏭️  Skippé : ${perfResult.reason}`);
-    } else {
-      perfIssues = perfResult.issues;
-      const perfImportants = perfIssues.filter(i => i.severity === 'IMPORTANT').length;
-      const perfMineurs = perfIssues.filter(i => i.severity === 'MINEUR').length;
-      console.log(`   ${perfResult.totalPages} pages auditées (${perfResult.totalErrors} erreurs, ${perfResult.totalWarnings} warnings)`);
-      console.log(`   ${perfImportants} importants, ${perfMineurs} mineurs`);
-    }
-  } catch (err) {
-    console.log(`   ⚠️ SE Ranking error: ${err.message}`);
-    console.log('   Les checks performance sont ignorés.');
-  }
-}
+// Extraire les résultats nommés pour le rapport
+const techInfo = results.tech?.info || {};
+const linkIssues = results.link?.issues || [];
+const pageIssues = results.page?.issues || [];
+const contentIssues = results.content?.issues || [];
+const visualIssues = results.visual?.issues || [];
+const a11yIssues = results.a11y?.issues || [];
+const perfIssues = results.perf?.issues || [];
+const screenshotPaths = results.visual?.screenshotPaths || [];
 
 // ═══════════════════════════════════════
 // 9. Génération du rapport
