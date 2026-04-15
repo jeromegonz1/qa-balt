@@ -222,11 +222,12 @@ app.get('/api/qa/stream', async (req, res) => {
   const jobId = `stream-${Date.now()}`;
   activeJobs.set(jobId, { started: new Date().toISOString(), status: 'running', url });
 
-  // SSE headers
+  // SSE headers — X-Accel-Buffering: no pour désactiver le buffering proxy (Apache/Nginx)
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no',
   });
 
   console.log(`\n🖥️  SSE audit lancé pour ${url}`);
@@ -242,6 +243,20 @@ app.get('/api/qa/stream', async (req, res) => {
   });
 
   let buffer = { stdout: '', stderr: '' };
+  let clientConnected = true;
+
+  // Helper write SSE-safe (ignore si client déconnecté)
+  function safeWrite(data) {
+    if (clientConnected) {
+      try { res.write(data); } catch (_) { clientConnected = false; }
+    }
+  }
+
+  // Heartbeat toutes les 15s pour éviter timeout proxy (Cloudflare = 100s)
+  // Format SSE comment (ligne `:`) — ignoré par EventSource côté client
+  const heartbeat = setInterval(() => {
+    safeWrite(`: ping ${Date.now()}\n\n`);
+  }, 15000);
 
   function sendLines(stream, data) {
     buffer[stream] += data.toString();
@@ -249,7 +264,7 @@ app.get('/api/qa/stream', async (req, res) => {
     buffer[stream] = lines.pop(); // garder le fragment incomplet
     for (const line of lines) {
       if (line.trim()) {
-        res.write(`event: log\ndata: ${line}\n\n`);
+        safeWrite(`event: log\ndata: ${line}\n\n`);
       }
     }
   }
@@ -258,12 +273,13 @@ app.get('/api/qa/stream', async (req, res) => {
   child.stderr.on('data', (d) => { process.stderr.write(d); sendLines('stderr', d); });
 
   child.on('close', (code) => {
+    clearInterval(heartbeat);
     activeJobs.delete(jobId);
 
     // Flush remaining buffer
     for (const stream of ['stdout', 'stderr']) {
       if (buffer[stream].trim()) {
-        res.write(`event: log\ndata: ${buffer[stream]}\n\n`);
+        safeWrite(`event: log\ndata: ${buffer[stream]}\n\n`);
       }
     }
 
@@ -283,30 +299,31 @@ app.get('/api/qa/stream', async (req, res) => {
         const hasBloquants = /BLOQUANT \| [1-9]\d*/.test(markdown);
         const data = { mdFile, hasBloquants };
         if (existsSync(htmlPath)) data.htmlFile = htmlFile;
-        res.write(`event: done\ndata: ${JSON.stringify(data)}\n\n`);
+        safeWrite(`event: done\ndata: ${JSON.stringify(data)}\n\n`);
       } else {
-        res.write(`event: error\ndata: QA termine (code ${code}) mais rapport introuvable\n\n`);
+        safeWrite(`event: error\ndata: QA termine (code ${code}) mais rapport introuvable\n\n`);
       }
     } catch (err) {
-      res.write(`event: error\ndata: ${err.message}\n\n`);
+      safeWrite(`event: error\ndata: ${err.message}\n\n`);
     }
 
-    res.end();
+    if (clientConnected) res.end();
     console.log(`   SSE audit terminé pour ${url}`);
   });
 
   child.on('error', (err) => {
+    clearInterval(heartbeat);
     activeJobs.delete(jobId);
-    res.write(`event: error\ndata: ${err.message}\n\n`);
-    res.end();
+    safeWrite(`event: error\ndata: ${err.message}\n\n`);
+    if (clientConnected) res.end();
   });
 
-  // Cleanup si le client déconnecte
+  // Si le client déconnecte : on laisse l'audit aller au bout
+  // Le rapport sera dispo via /reports/{slug}-{date}.{md,html}
   req.on('close', () => {
+    clientConnected = false;
     if (child.exitCode === null) {
-      console.log(`   Client SSE déconnecté — kill du subprocess`);
-      child.kill('SIGTERM');
-      activeJobs.delete(jobId);
+      console.log(`   Client SSE déconnecté — audit continue en background`);
     }
   });
 });
