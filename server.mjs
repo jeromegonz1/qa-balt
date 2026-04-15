@@ -27,7 +27,7 @@
  */
 import express from 'express';
 import { spawn } from 'child_process';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
 import { resolve, basename } from 'path';
 import { validatePublicUrl } from './lib/utils.mjs';
 import {
@@ -326,6 +326,58 @@ app.get('/api/qa/stream', async (req, res) => {
       console.log(`   Client SSE déconnecté — audit continue en background`);
     }
   });
+});
+
+/**
+ * GET /reports — Index des rapports disponibles
+ */
+app.get('/reports', (req, res) => {
+  const reportsDir = resolve(__dirname, 'reports');
+  let files = [];
+  try {
+    files = readdirSync(reportsDir)
+      .filter(f => /\.(md|html)$/.test(f))
+      .map(f => {
+        const stat = statSync(resolve(reportsDir, f));
+        return { name: f, size: stat.size, mtime: stat.mtime };
+      })
+      .sort((a, b) => b.mtime - a.mtime);
+  } catch (err) {
+    return res.status(500).send('Erreur lecture dossier reports');
+  }
+
+  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const fmtSize = (b) => b > 1024*1024 ? (b/1024/1024).toFixed(1)+' MB' : (b/1024).toFixed(1)+' KB';
+  const fmtDate = (d) => new Date(d).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+
+  const rows = files.map(f =>
+    `<tr><td><a href="/reports/${esc(f.name)}">${esc(f.name)}</a></td><td>${fmtSize(f.size)}</td><td>${fmtDate(f.mtime)}</td></tr>`
+  ).join('');
+
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(`<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"><title>Rapports QA-BALT</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f6fa;color:#333;margin:0}
+header{background:#1B3A5C;color:#fff;padding:1.2rem 2rem}
+header h1{margin:0;font-size:1.4rem}
+main{max-width:1000px;margin:2rem auto;padding:0 1rem}
+.card{background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:1.5rem}
+table{width:100%;border-collapse:collapse}
+th,td{padding:.6rem .8rem;text-align:left;border-bottom:1px solid #eee;font-size:.9rem}
+th{background:#fafbfc;font-weight:600;color:#555}
+a{color:#1B3A5C;text-decoration:none}
+a:hover{text-decoration:underline}
+.empty{color:#999;text-align:center;padding:2rem}
+.back{display:inline-block;margin-bottom:1rem;font-size:.85rem}
+</style></head><body>
+<header><h1>QA-BALT — Rapports</h1></header>
+<main>
+<a href="/" class="back">&larr; Retour audit</a>
+<div class="card">
+${files.length === 0 ? '<div class="empty">Aucun rapport disponible</div>' : `<table><thead><tr><th>Fichier</th><th>Taille</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table>`}
+</div>
+</main></body></html>`);
 });
 
 /**
