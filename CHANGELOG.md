@@ -4,6 +4,45 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.8.0] - 2026-04-16
+
+### Added — Frontend QA avec SSE streaming
+- **`public/index.html`** : frontend vanilla HTML/CSS/JS (0 dependance npm, ~200 lignes)
+  - Champ URL + champ optionnel URL modele (collapse)
+  - Bouton "Analyser" avec spinner CSS, disabled pendant l'audit
+  - Zone de logs temps reel (fond sombre, coloration auto par type)
+  - Zone resultat : verdict (OK/KO) + boutons download .md/.html
+  - Auto-scroll des logs, Enter pour lancer
+- **`GET /api/qa/stream`** : endpoint SSE (Server-Sent Events)
+  - Spawn `qa.mjs` en subprocess, pipe stdout/stderr ligne par ligne
+  - Events SSE : `log` (lignes), `done` (rapport), `error` (erreur)
+  - Heartbeat SSE toutes les 10s (`: ping` comment) pour maintenir la connexion a travers Cloudflare (idle timeout 100s) et Apache proxy
+  - `res.flushHeaders()` pour forcer le flush immediat des headers HTTP
+  - `safeWrite()` wrapper — ignore les ecritures si client deconnecte
+  - Si le client deconnecte : l'audit continue en background (pas de kill subprocess), rapport dispo via `/reports/`
+  - Rate limit : respecte `activeJobs` + `MAX_CONCURRENT_JOBS` existant
+  - Validation URL via `validatePublicUrl()` (SSRF protection)
+- **`GET /reports`** : page index listant tous les rapports disponibles
+  - Trie par date de modification (plus recent en premier)
+  - Affiche taille + date, liens de telechargement
+- **`GET /reports/:filename`** : servir les rapports generes
+  - Protection path traversal : `basename()` + whitelist extensions `.md` / `.html`
+- **`GET /api/qa/last-sse`** : endpoint diagnostic derniere session SSE
+  - Retourne : heartbeats envoyes, data events, timing deconnexion, exit code child, report generated
+  - Consultable sans SSH pour debug la connexion SSE
+- **`express.static('public')`** : frontend servi apres les routes API
+
+### Fixed
+- **SSE connection drop** : Apache proxy bufferisait les reponses SSE → Cloudflare ne recevait pas les heartbeats → timeout 100s → connexion coupee. Fix : `flushpackets=on` dans ProxyPass Apache + `res.flushHeaders()` cote Node
+- **Subprocess kill premature** : `req.on('close')` tuait le subprocess `qa.mjs` quand la connexion SSE se fermait. Maintenant l'audit continue en background — le rapport est genere et dispo via `/reports/`
+
+### Deploy VPS
+- Vhost Apache cree : `/etc/apache2/sites-enabled/qabalt.fire-snake-301.fr.conf`
+- DNS Cloudflare : `qabalt.fire-snake-301.fr` → A record → `83.228.208.83` (Proxied)
+- ProxyPass avec `flushpackets=on` (critique pour SSE via Apache)
+- Exclusion `/qa-balt` dans le vhost par defaut `000-juriwatch.conf`
+- Port 3847 ouvert dans iptables (regle #20)
+
 ## [2.7.0] - 2026-04-14
 
 ### Security (P0)

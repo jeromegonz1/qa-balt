@@ -2,11 +2,12 @@
 
 ## Projet
 Robot QA automatise pour sites AZKO/BALT (CMS Septeo). Node.js 22 ESM.
-Version actuelle : **v2.7.0** — 112+ checks automatises.
+Version actuelle : **v2.8.0** — 112+ checks automatises.
 
 ## Architecture
 - `qa.mjs` : orchestrateur CLI (flags: --tech-only, --visual-only, --model-url)
-- `server.mjs` : webhook Express ClickUp (port 3847)
+- `server.mjs` : serveur Express — webhook ClickUp + frontend QA + SSE streaming (port 3847)
+- `public/index.html` : frontend vanilla HTML/CSS/JS (0 dependance npm)
 - `lib/config.mjs` : configuration centralisee (seuils, blacklists, patterns — extensible)
 - `lib/models.mjs` : loader reference modeles AZKO (cache memoire, auto-decouverte)
 - `lib/utils.mjs` : securite (shellEscape, safeCurl, validatePublicUrl, isPrivateIp)
@@ -156,11 +157,82 @@ CLICKUP_STATUS_QA_OK=qa ok            # Statut post-QA sans bloquant (optionnel)
 CLICKUP_STATUS_QA_KO=qa ko            # Statut post-QA avec bloquant(s) (optionnel)
 ```
 
-## Securite (v2.7.0)
+## Frontend QA (v2.8.0)
+
+### Acces
+- **Local** : `http://localhost:3847/`
+- **Prod** : `http://qabalt.fire-snake-301.fr/`
+
+### Endpoints frontend
+| Endpoint | Description |
+|---|---|
+| `GET /` | Frontend HTML (formulaire d'audit) |
+| `GET /api/qa/stream?url=...&model_url=...` | SSE streaming audit |
+| `GET /reports` | Index des rapports disponibles |
+| `GET /reports/:filename` | Telecharger un rapport (.md ou .html) |
+| `GET /api/qa/last-sse` | Diagnostic derniere session SSE |
+
+### SSE (Server-Sent Events)
+- Le frontend se connecte via `EventSource` a `/api/qa/stream`
+- Le serveur spawn `qa.mjs` en subprocess et pipe stdout/stderr en events SSE
+- **Events** : `log` (lignes), `done` (rapport genere), `error` (erreur)
+- **Heartbeat** : `: ping N t+Xs` toutes les 10s (comment SSE, ignore par EventSource)
+- **Si le client deconnecte** : l'audit continue en background, rapport dispo via `/reports/`
+- **Diagnostic** : `GET /api/qa/last-sse` retourne les metriques de la derniere session (heartbeats, timing, disconnect)
+
+### Differences local vs VPS prod
+
+| Aspect | Local (Mac) | VPS (83.228.208.83) |
+|---|---|---|
+| **URL** | `http://localhost:3847/` | `http://qabalt.fire-snake-301.fr/` |
+| **Playwright** | Chrome visible (headed, ecran natif) | Chrome via Xvfb (display :99, headless virtuel) |
+| **Proxy** | Direct (pas de proxy) | Cloudflare → Apache → Express:3847 |
+| **SSE** | Connexion directe, pas de timeout | Cloudflare (100s idle) + Apache (`flushpackets=on` requis) |
+| **Firewall** | Aucun | iptables (port 3847 ouvert) + Cloudflare WAF |
+| **IP source audits** | IP Mac (`165.85.255.240`*) | IP VPS (`83.228.208.83`) |
+| **Rapports** | `~/claude-code/qa-balt/reports/` | `/home/ubuntu/qa-balt/reports/` |
+| **Logs** | stdout terminal | `sudo journalctl -u qa-balt -f` |
+
+\* IP Mac variable (VPN, reseau)
+
+### Config Apache VPS (critique pour SSE)
+```apache
+# /etc/apache2/sites-enabled/qabalt.fire-snake-301.fr.conf
+<VirtualHost *:80>
+    ServerName qabalt.fire-snake-301.fr
+    ProxyPreserveHost On
+    ProxyPass / http://127.0.0.1:3847/ flushpackets=on  # ← OBLIGATOIRE pour SSE
+    ProxyPassReverse / http://127.0.0.1:3847/
+    <Proxy *>
+        Require all granted
+    </Proxy>
+</VirtualHost>
+```
+- **`flushpackets=on`** : force Apache a flusher chaque paquet SSE immediatement au lieu de bufferiser
+  - Sans ca : les heartbeats sont retenus par Apache → Cloudflare ne les voit pas → timeout 100s → connexion coupee
+  - Symptome : "Connexion perdue" dans le frontend apres ~100s de silence (pendant visual checks Playwright)
+
+### Config Cloudflare
+- DNS : `qabalt` → A record → `83.228.208.83` (Proxied, nuage orange)
+- Domaine : `fire-snake-301.fr`
+- Idle timeout Cloudflare : 100s (free plan) — le heartbeat 10s empeche la coupure
+
+### IP whitelisting DSI Septeo
+Les sites *.site.azko.fr ont un rate limiter/WAF cote Septeo. Si l'audit retourne des 429 sur la homepage, faire whitelister :
+- `83.228.208.83` — IP VPS (obligatoire pour les audits en prod)
+- IP Mac variable — optionnel pour les tests locaux
+
+### Bugs connus frontend
+- `VISUAL_THRESHOLDS is not defined` dans `visual-checks.mjs:page.evaluate()` — genere un MINEUR "Timeout chargement mobile" (pas bloquant)
+- `violationsByRule is not defined` dans `a11y-checks.mjs` — axe-core error silencieuse (pas bloquant)
+
+## Securite (v2.8.0)
 - **Shell injection** : tous les appels curl passent par `safeCurl()` (lib/utils.mjs) qui echappe les URLs via single-quote wrapping
 - **SSRF** : `validatePublicUrl()` bloque localhost, IPs privees (RFC1918, link-local, loopback, IPv6 ULA) + DNS rebinding (resolution avant fetch)
-- **Points d'entree proteges** : qa.mjs (CLI), server.mjs (/api/qa/direct + webhook ClickUp)
+- **Points d'entree proteges** : qa.mjs (CLI), server.mjs (/api/qa/direct + webhook ClickUp + /api/qa/stream)
 - **Auth API** : `requireAuth` middleware sur /api/qa, /api/qa/direct et /api/jobs (via `QA_BALT_API_KEY`, bypass en dev)
+- **Frontend** : pas d'auth (acces libre), restriction IP geree au niveau firewall/Cloudflare VPS
+- **Path traversal** : `/reports/:filename` utilise `basename()` + whitelist `.md`/`.html`
 - **Browser cleanup** : try/finally sur `browser.close()` dans visual-checks + a11y-checks (pas de fuite Chrome)
 
 ## Checks visuels (visual-checks.mjs)
@@ -196,8 +268,12 @@ CLICKUP_STATUS_QA_KO=qa ko            # Statut post-QA avec bloquant(s) (optionn
 ## Deploy VPS
 - Remote : VPS 83.228.208.83 (alias vps-firesnake)
 - Path : /home/ubuntu/qa-balt/
-- Service : systemd qa-balt + Nginx reverse proxy (port 3847)
-- Deploy : `git pull` + `npm install` + `sudo systemctl restart qa-balt`
+- Service : systemd qa-balt (`Environment=DISPLAY=:99`, `Requires=xvfb.service`)
+- Proxy : Apache reverse proxy (`qabalt.fire-snake-301.fr` → `127.0.0.1:3847`, `flushpackets=on`)
+- Xvfb : `/usr/bin/Xvfb :99 -screen 0 1440x900x24` (service systemd `xvfb.service`)
+- DNS : `qabalt.fire-snake-301.fr` → Cloudflare (Proxied) → `83.228.208.83`
+- Deploy : `git pull` + `sudo systemctl restart qa-balt` (npm install si nouvelles deps)
+- Logs : `sudo journalctl -u qa-balt -f`
 
 ## Tests
 - **Regression** : `tests/run-regression.mjs` — comparaison snapshot issue IDs vs baseline
