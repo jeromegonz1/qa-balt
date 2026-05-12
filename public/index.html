@@ -196,6 +196,19 @@
     // Enter key to submit
     urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') startAudit(); });
     modelUrlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') startAudit(); });
+
+    // Prefill depuis query string : ?url=... [&model_url=...] [&auto=1]
+    const qs = new URLSearchParams(window.location.search);
+    const qsUrl = qs.get('url');
+    const qsModelUrl = qs.get('model_url');
+    if (qsUrl) urlInput.value = qsUrl;
+    if (qsModelUrl) {
+      modelUrlInput.value = qsModelUrl;
+      document.getElementById('model-field').classList.add('visible');
+    }
+    if (qsUrl && (qs.get('auto') === '1' || qs.get('autostart') === '1')) {
+      startAudit();
+    }
   </script>
 </body>
 </html>
