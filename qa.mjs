@@ -23,7 +23,8 @@ import { runSeRankingChecks } from './lib/seranking-checks.mjs';
 import { generateReport } from './lib/report.mjs';
 import { generateHtmlReport } from './lib/report-html.mjs';
 import { findModel } from './lib/models.mjs';
-import { validatePublicUrl } from './lib/utils.mjs';
+import { extractModelFromHtml } from './lib/model-detection.mjs';
+import { validatePublicUrl, safeCurl } from './lib/utils.mjs';
 import { writeFileSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
 
@@ -148,7 +149,25 @@ if (siteContextArg) {
 }
 const domain = new URL(baseUrl).hostname;
 
-// Enrichir avec la référence modèle si détecté
+// Cascade detection modele : saisie manuelle (ClickUp/CLI) prioritaire, sinon HTML widget
+if (siteContext.model) {
+  siteContext.modelDetectionSource = 'manual';
+  console.log(`🎯 Modèle (saisie manuelle) : ${siteContext.model}`);
+} else {
+  const homepageHtml = safeCurl(`${baseUrl}/`, { maxTime: 15 });
+  const detected = extractModelFromHtml(homepageHtml);
+  if (detected) {
+    siteContext.model = detected.id;
+    siteContext.modelDetectionSource = 'html-widget';
+    if (!siteContext.sector) siteContext.detectedVertical = detected.vertical;
+    console.log(`🎯 Modèle (auto-détecté HTML widget) : ${detected.name} — vertical ${detected.vertical}`);
+  } else {
+    siteContext.modelDetectionSource = 'none';
+    console.log(`🎯 Modèle : non spécifié, widget HTML absent — comparaison modèle désactivée`);
+  }
+}
+
+// Enrichir avec la référence modèle si on en a un
 if (siteContext.model) {
   siteContext.modelRef = findModel(siteContext.model);
 }
