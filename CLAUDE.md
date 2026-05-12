@@ -224,7 +224,6 @@ Les sites *.site.azko.fr ont un rate limiter/WAF cote Septeo. Si l'audit retourn
 
 ### Bugs connus frontend
 - `VISUAL_THRESHOLDS is not defined` dans `visual-checks.mjs:page.evaluate()` — genere un MINEUR "Timeout chargement mobile" (pas bloquant)
-- `violationsByRule is not defined` dans `a11y-checks.mjs` — axe-core error silencieuse (pas bloquant)
 
 ## Securite (v2.8.0)
 - **Shell injection** : tous les appels curl passent par `safeCurl()` (lib/utils.mjs) qui echappe les URLs via single-quote wrapping

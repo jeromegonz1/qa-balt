@@ -4,6 +4,11 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.8.1] - 2026-05-12
+
+### Fixed
+- **`lib/a11y-checks.mjs`** : `violationsByRule` declare hors du bloc try/finally. La Map etait piegee dans le scope du try (ajoute lors du fix browser leak) et levait `ReferenceError` apres le `finally`, avalee par le try/catch du module registry. Consequence : axe-core ne contribuait plus aux rapports depuis cette regression. Validation : audit `aeroport-hotel.site.azko.fr` produit 9 issues a11y (1 bloquant `button-name`, 5 importants, 3 mineurs).
+
 ## [2.8.0] - 2026-04-16
 
 ### Added — Frontend QA avec SSE streaming
