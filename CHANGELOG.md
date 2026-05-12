@@ -4,6 +4,22 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.9.0] - 2026-05-12
+
+### Added
+- **Detection automatique du modele BALT** (`lib/model-detection.mjs`) — extraction depuis le widget HTML `<div class="btn-catalogue">` (`?modele=X`) avec normalisation des verticals (avocats→avocat, etc.). Cascade : `siteContext.model` (ClickUp/CLI manuel) prioritaire, sinon fallback HTML widget. Tests : 13 cas unitaires. Validation live : `ordre-avocats-limoges` → modele Faena auto-detecte.
+- **Module debuglog AZKO** (`lib/debuglog-checks.mjs`) — extrait `var oJsonFeedback` du HTML quand `?debuglog=<token>` est ajoute :
+  - Erreurs PHP runtime (Undefined variable, Call to undefined, fatals) → issues IMPORTANT/BLOQUANT
+  - Metadonnees site : ORGA / SITE / SKIN (id + nom) → enrichit `siteContext.azkoMeta`
+  - Version code AZKO + version tpl skin → detection sites pas redeployes
+  - Filtre du bruit infra (Kubernetes, fallback skin 404). Dedup par level+msg+file+line. Tests : 25 cas unitaires.
+  - Token requis dans `.env` : `AZKO_DEBUG_TOKEN`. Skip silencieux si absent.
+- **URL frontend pre-remplie** : `?url=...&model_url=...&auto=1` pour lancer un audit depuis un lien externe (ex. ClickUp formula field).
+- **Chargement automatique de `.env` dans `qa.mjs`** (parite avec `server.mjs`) — utilisable en CLI direct sans variables d'environnement exportees.
+
+### Fixed
+- **GPS Schema.org detection** (`SCHEMA_GPS_ZERO`) — regex insensible a la casse, capture des guillemets optionnels, comparaison `parseFloat() === 0`. Couvre desormais : `0.0`, `0.000000`, `"0"`, `"0.0"`, `Latitude`/`LATITUDE` (manquait avant : decimales, quotes, casse).
+
 ## [2.8.1] - 2026-05-12
 
 ### Fixed
