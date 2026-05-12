@@ -19,14 +19,24 @@ import { runPageChecks } from './lib/page-checks.mjs';
 import { runContentChecks } from './lib/content-checks.mjs';
 import { runVisualChecks } from './lib/visual-checks.mjs';
 import { runA11yChecks } from './lib/a11y-checks.mjs';
+import { runDebuglogChecks } from './lib/debuglog-checks.mjs';
 import { runSeRankingChecks } from './lib/seranking-checks.mjs';
 import { generateReport } from './lib/report.mjs';
 import { generateHtmlReport } from './lib/report-html.mjs';
 import { findModel } from './lib/models.mjs';
 import { extractModelFromHtml } from './lib/model-detection.mjs';
 import { validatePublicUrl, safeCurl } from './lib/utils.mjs';
-import { writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
+
+// Charger .env (parite avec server.mjs) — utile quand qa.mjs est lance via CLI
+const envPath = resolve(import.meta.dirname, '.env');
+if (existsSync(envPath)) {
+  for (const line of readFileSync(envPath, 'utf-8').split('\n')) {
+    const m = line.match(/^([^#=]+)=(.*)$/);
+    if (m && !process.env[m[1].trim()]) process.env[m[1].trim()] = m[2].trim();
+  }
+}
 
 // ═══════════════════════════════════════
 // Module registry — ajouter un module = ajouter un objet ici
@@ -75,6 +85,13 @@ const MODULE_REGISTRY = [
     guard: ({ techOnly }) => !techOnly,
     args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus],
     async: true,
+  },
+  {
+    id: 'debuglog',
+    label: '🐘 Erreurs PHP serveur (debuglog AZKO)',
+    fn: runDebuglogChecks,
+    guard: ({ visualOnly }) => !visualOnly,
+    args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus, ctx.siteContext],
   },
   {
     id: 'perf',
