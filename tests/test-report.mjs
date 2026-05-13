@@ -119,6 +119,40 @@ const groupedNonTemplate = groupIssues(issuesNonTemplate, 20);
 const h1Group = groupedNonTemplate.find(g => g.id === 'H1_MISSING');
 assertEqual(h1Group.scope, null, '2/20 pages = not template');
 
+// Preservation des champs enrichis Phase A
+const issuesEnriched = [
+  {
+    id: 'A11Y_BUTTON_NAME',
+    severity: 'BLOQUANT',
+    page: 'p1',
+    title: 'Button must have name',
+    detail: 'foo',
+    element: { selector: '.btn', html: '<button>X</button>', location: 'header' },
+    reference: 'https://docs.example/button-name',
+  },
+  // 2eme occurrence sur p2 — sans element (cas reel : axe-core ne capture qu'1 fois)
+  {
+    id: 'A11Y_BUTTON_NAME',
+    severity: 'IMPORTANT',
+    page: 'p2',
+    title: 'Button must have name',
+    detail: 'bar',
+  },
+];
+const enrichedGroup = groupIssues(issuesEnriched, 10).find(g => g.id === 'A11Y_BUTTON_NAME');
+assertEqual(enrichedGroup.element?.location, 'header', 'groupIssues preserve element.location depuis la 1re issue');
+assertEqual(enrichedGroup.element?.selector, '.btn', 'groupIssues preserve element.selector');
+assertEqual(enrichedGroup.reference, 'https://docs.example/button-name', 'groupIssues preserve reference');
+assertEqual(enrichedGroup.severity, 'BLOQUANT', 'groupIssues promote severity au max (BLOQUANT > IMPORTANT)');
+
+// Cas inverse : 1re issue sans element, 2eme avec → groupe recupere la 2eme
+const issuesElementLater = [
+  { id: 'X_TEST', severity: 'MINEUR', page: 'p1', title: 'foo', detail: '' },
+  { id: 'X_TEST', severity: 'MINEUR', page: 'p2', title: 'foo', detail: '', element: { selector: '.late', location: 'footer' } },
+];
+const lateGroup = groupIssues(issuesElementLater, 10).find(g => g.id === 'X_TEST');
+assertEqual(lateGroup.element?.location, 'footer', 'groupIssues recupere element si 1re issue sans, 2eme avec');
+
 // ═══════════════════════════════════════
 // generateReport structure
 // ═══════════════════════════════════════
