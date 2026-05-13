@@ -47,7 +47,7 @@ const MODULE_REGISTRY = [
     label: '🔧 Checks techniques',
     fn: runTechChecks,
     guard: ({ visualOnly }) => !visualOnly,
-    args: (ctx) => [ctx.baseUrl],
+    args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus],
   },
   {
     id: 'link',
