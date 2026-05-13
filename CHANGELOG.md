@@ -4,6 +4,33 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.10.0] - 2026-05-13
+
+### Security
+- **Whitelist domaine `*.azko.fr`** sur tous les endpoints d'audit (`/api/qa`, `/api/qa/direct`, `/api/qa/stream`, CLI `qa.mjs`). Bloque l'usage de qa-balt comme scanner anonyme pour sites tiers. Nouveau module `lib/url-guard.mjs` :
+  - `validateAuditUrl` : strict `*.azko.fr` (preprods uniquement).
+  - `validateModelUrl` : plus permissif (`*.azko.fr` + `*.septeo-digitalagency.fr` pour catalogues/demos).
+  - Schemes whitelist : `http`/`https` seulement (bloque `file://`, `javascript:`, `data:`, `ftp:`).
+  - Longueur max 2048, caracteres de controle interdits (anti log-injection).
+  - Suffix-attack resistant (`evil.azko.fr.attacker.com` bloque).
+  - 31 tests unitaires.
+
+### Added — Phase A : rapport enrichi (4 bricks)
+- **`lib/fix-suggestions.mjs`** (Phase A 1/N) : 31 entrees mappent les IDs d'issue les plus courants vers texte de fix, snippet exemple, fichier probable (`.tpl`/SCSS/CMS), reference WCAG/MDN, impact tag (a11y/seo/securite/perf/rgpd). Lookup exact ou wildcard (`A11Y_*`, `PHP_*`). 17 tests.
+- **`lib/element-location.mjs`** (Phase A 2/N) : `classifyLocation(ancestorChain)` categorise un element par sa zone semantique (header/footer/hero/nav/form/aside/main/body). Matching set-based BEM-aware (block, `block__elem`, `block--mod`, `block-suffix`). 31 tests.
+- **a11y-checks.mjs enrichi** (Phase A 2/N) : chaque issue a11y porte desormais un `element: { selector, html (200 chars max), location }` + `reference` (axe helpUrl).
+- **`lib/report.mjs` groupIssues** preserve maintenant `element` et `reference` au groupement (1re occurrence prioritaire, fallback si suivantes ont l'info).
+- **`lib/report-html.mjs` rendu enrichi** (Phase A 3/N) : helper `renderIssueExtras(issue, siteUrl)` produit une carte enrichie sous chaque issue :
+  - Badge location (📍 header, 📍 footer...) + selector monospace + lien live `?qa_highlight=...`.
+  - Bloc fix (💡 texte + example code + fichier probable + impact).
+  - Lien reference (📚) externe.
+  - Layout hybride : BLOQUANTS deplies, IMPORTANT/MINEUR collapsibles via `<details>`.
+- **Bookmarklet « QA Highlight »** (Phase A 4/N) : section repliable « 🛠 Outils QA » en tete de rapport HTML avec bouton drag-and-drop a installer en favori 1× seulement. Lit `?qa_highlight=` de l'URL preprod, scroll + outline rouge l'element. Pas d'eval, pas de reseau, pas de storage.
+
+### Internal
+- `tests/test-url-guard.mjs`, `tests/test-fix-suggestions.mjs`, `tests/test-element-location.mjs` ajoutes. Suite : 189+ tests unitaires.
+- `package.json` `test:unit` inclut les nouveaux tests.
+
 ## [2.9.1] - 2026-05-13
 
 ### Fixed

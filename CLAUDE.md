@@ -11,7 +11,7 @@ Version actuelle : **v2.8.0** — 112+ checks automatises.
 - `lib/config.mjs` : configuration centralisee (seuils, blacklists, patterns — extensible)
 - `lib/models.mjs` : loader reference modeles AZKO (cache memoire, auto-decouverte)
 - `lib/utils.mjs` : securite (shellEscape, safeCurl, validatePublicUrl, isPrivateIp)
-- `lib/` : 16 modules (config, models, utils, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, debuglog-checks, seranking-checks, model-detection, report, report-html, clickup)
+- `lib/` : 20 modules (config, models, utils, url-guard, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, debuglog-checks, seranking-checks, geo-extraction, model-detection, element-location, fix-suggestions, report, report-html, clickup)
 - `data/` : base de reference modeles JSON par vertical (models-camping, models-avocat, models-cdj, models-notaire)
 - `docs/SPRINT-P1-P2-P3.md` : brief technique Sprint Playwright v3 (fiabilisation, preuve, rerun)
 
