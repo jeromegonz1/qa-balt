@@ -30,6 +30,7 @@ import { spawn } from 'child_process';
 import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
 import { resolve, basename } from 'path';
 import { validatePublicUrl } from './lib/utils.mjs';
+import { validateAuditUrl, validateModelUrl } from './lib/url-guard.mjs';
 import {
   getTask,
   extractPreprodUrl,
@@ -163,12 +164,21 @@ app.post('/api/qa/direct', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'url manquant' });
   }
   try {
-    await validatePublicUrl(url);
+    validateAuditUrl(url);          // whitelist *.azko.fr + scheme + chars + length
+    await validatePublicUrl(url);   // SSRF (IPs privees, DNS rebinding)
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
 
   const directModelUrl = req.body.model_url || req.body.modelUrl || null;
+  if (directModelUrl) {
+    try {
+      validateModelUrl(directModelUrl);
+      await validatePublicUrl(directModelUrl);
+    } catch (err) {
+      return res.status(400).json({ error: `model_url : ${err.message}` });
+    }
+  }
   console.log(`\n🔍 QA direct demandé pour ${url}`);
   if (directModelUrl) console.log(`   Modèle: ${directModelUrl}`);
   res.json({ status: 'accepted', url, model_url: directModelUrl, message: 'QA lancé — rapport dans /reports' });
@@ -216,7 +226,8 @@ app.get('/api/qa/stream', async (req, res) => {
     return res.status(400).json({ error: 'url manquant (query param)' });
   }
   try {
-    await validatePublicUrl(url);
+    validateAuditUrl(url);          // whitelist *.azko.fr + scheme + chars + length
+    await validatePublicUrl(url);   // SSRF
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
@@ -230,6 +241,14 @@ app.get('/api/qa/stream', async (req, res) => {
   }
 
   const modelUrl = req.query.model_url || null;
+  if (modelUrl) {
+    try {
+      validateModelUrl(modelUrl);
+      await validatePublicUrl(modelUrl);
+    } catch (err) {
+      return res.status(400).json({ error: `model_url : ${err.message}` });
+    }
+  }
   const jobId = `stream-${Date.now()}`;
   activeJobs.set(jobId, { started: new Date().toISOString(), status: 'running', url });
 
@@ -480,13 +499,14 @@ async function runQAForTask(taskId) {
     return;
   }
 
-  // Validation SSRF sur l'URL preprod
+  // Validation whitelist + SSRF sur l'URL preprod
   if (preprodUrl) {
     try {
+      validateAuditUrl(preprodUrl);
       await validatePublicUrl(preprodUrl);
     } catch (err) {
       activeJobs.delete(taskId);
-      console.error(`   SSRF bloque : ${err.message}`);
+      console.error(`   URL bloquee : ${err.message}`);
       try {
         await postComment(taskId, `⚠️ **QA automatique bloqué**\n\nURL non autorisée : ${err.message}`);
       } catch (e) { /* best effort */ }
@@ -511,6 +531,17 @@ async function runQAForTask(taskId) {
   console.log(`   Tâche: "${task.name}"`);
   console.log(`   URL: ${preprodUrl}`);
   if (modelUrl) console.log(`   Modèle: ${modelUrl}`);
+
+  // Validation modelUrl (best-effort, on skip si invalide)
+  if (modelUrl) {
+    try {
+      validateModelUrl(modelUrl);
+      await validatePublicUrl(modelUrl);
+    } catch (err) {
+      console.warn(`   modelUrl invalide, ignore : ${err.message}`);
+      modelUrl = null;
+    }
+  }
 
   // 2. Poster un commentaire "QA en cours"
   activeJobs.set(taskId, { started: new Date().toISOString(), status: 'running', url: preprodUrl });

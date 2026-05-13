@@ -26,6 +26,7 @@ import { generateHtmlReport } from './lib/report-html.mjs';
 import { findModel } from './lib/models.mjs';
 import { extractModelFromHtml } from './lib/model-detection.mjs';
 import { validatePublicUrl, safeCurl } from './lib/utils.mjs';
+import { validateAuditUrl, validateModelUrl } from './lib/url-guard.mjs';
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -136,18 +137,20 @@ Exemple:
   process.exit(1);
 }
 
-// Normaliser et valider l'URL (+ protection SSRF)
+// Normaliser et valider l'URL (whitelist *.azko.fr + SSRF)
 const baseUrl = url.replace(/\/$/, '');
 try {
+  validateAuditUrl(baseUrl);
   await validatePublicUrl(baseUrl);
 } catch (err) {
   console.error(`❌ ${err.message}`);
   process.exit(1);
 }
 
-// Valider modelUrl si present (SSRF)
+// Valider modelUrl si present (whitelist + SSRF)
 if (modelUrl) {
   try {
+    validateModelUrl(modelUrl);
     await validatePublicUrl(modelUrl);
   } catch (err) {
     console.error(`❌ Model URL: ${err.message}`);
