@@ -4,6 +4,14 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.9.1] - 2026-05-13
+
+### Fixed
+- **`debuglog` issues remontees dans le rapport** : le module `debuglog-checks.mjs` (introduit en 2.9.0) calculait correctement les erreurs PHP serveur mais ses issues n'etaient pas mergees dans `rawIssues` du rapport (oubli dans `qa.mjs`, `lib/report.mjs`, `lib/report-html.mjs`). Decouvert via audit camping-le-napoleon : log indiquait « 2 erreur(s) PHP retenue(s) » mais aucune issue PHP_* dans le .md/.html. Fix : `debuglogIssues` ajoute dans toutes les chaines d'agregation.
+
+### Added
+- **Cross-check Schema.org GPS 0,0 ↔ iframe Maps** : quand `SCHEMA_GPS_ZERO` detecte, on cherche dans les pages contact une iframe Maps avec coords numeriques ou adresse texte (Embed API v1), enrichit le detail avec suggestion concrete. Nouveau module `lib/geo-extraction.mjs` (4 fonctions exportees, 20 tests). Couvre formats `?pb=...!2d!3d`, `?q=lat,lng`, `?ll=...`, `?center=...`, `/embed/v1/place?q=adresse`. Validation live : audit camping-le-napoleon retourne maintenant « 💡 Suggestion : l'iframe Maps de /contact.htm utilise l'adresse texte « 76 Rte de Grenoble N85, Domaine Napoleon, 05000 Gap » ».
+
 ## [2.9.0] - 2026-05-12
 
 ### Added

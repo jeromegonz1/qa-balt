@@ -275,6 +275,7 @@ const contentIssues = results.content?.issues || [];
 const visualIssues = results.visual?.issues || [];
 const a11yIssues = results.a11y?.issues || [];
 const perfIssues = results.perf?.issues || [];
+const debuglogIssues = results.debuglog?.issues || [];
 const screenshotPaths = results.visual?.screenshotPaths || [];
 
 // ═══════════════════════════════════════
@@ -290,6 +291,7 @@ const report = generateReport(baseUrl, {
   visualIssues,
   a11yIssues,
   perfIssues,
+  debuglogIssues,
   pages: pagesWithStatus,
   screenshotPaths,
   siteContext,
@@ -300,7 +302,7 @@ writeFileSync(reportPath, report, 'utf-8');
 
 const reportData = {
   techIssues, linkIssues, pageIssues, contentIssues,
-  techInfo, visualIssues, a11yIssues, perfIssues,
+  techInfo, visualIssues, a11yIssues, perfIssues, debuglogIssues,
   pages: pagesWithStatus, screenshotPaths, siteContext,
 };
 const htmlReport = generateHtmlReport(baseUrl, reportData);
@@ -310,7 +312,7 @@ writeFileSync(htmlReportPath, htmlReport, 'utf-8');
 // ═══════════════════════════════════════
 // 10. Résumé final
 // ═══════════════════════════════════════
-const allIssues = [...techIssues, ...linkIssues, ...pageIssues, ...contentIssues, ...visualIssues, ...a11yIssues, ...perfIssues];
+const allIssues = [...techIssues, ...linkIssues, ...pageIssues, ...contentIssues, ...visualIssues, ...a11yIssues, ...perfIssues, ...debuglogIssues];
 const totalBloquants = allIssues.filter(i => i.severity === 'BLOQUANT').length;
 const totalImportants = allIssues.filter(i => i.severity === 'IMPORTANT').length;
 
