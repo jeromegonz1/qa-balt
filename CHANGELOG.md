@@ -4,6 +4,25 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.11.0] - 2026-05-20
+
+### Fixed — Faux positifs identifies sur retours terrain (RETOURS QA — Julien)
+- **`SCHEMA_GPS_ZERO` + short URLs Google Maps** (sprint 1.a) : nouvelle fonction `extractMapsShortLink(html)` detecte `maps.app.goo.gl/<id>`, `goo.gl/maps/<id>`, `g.page/<id>`. La suggestion devient « short URL Maps utilise sur /contact.htm, ouvrir pour recuperer coords » au lieu de bloquant sans piste actionnable.
+- **`PRIVACY_404` avec politique RGPD en accordeon** (sprint 1.b) : si /politique-de-confidentialite.htm = 404 mais /mentions-legales.htm contient « politique de confidentialite | donnees personnelles | RGPD | GDPR », nouvelle issue `PRIVACY_IN_MENTIONS` en `CHECKLIST_MEP` (au lieu de bloquant) avec note « verifier que le contenu est suffisant ».
+- **`IMG_BROKEN` bug lazy load AZKO** (sprint 1.d) : nouveau type `IMG_BROKEN_LAZY_CMS` quand la majorite des images cassees ont `src=""` (bug GSAP lazy loader hors portee integrateur). Severite tolerante (>=10 = BLOQUANT, sinon IMPORTANT) + note explicite « bug CMS, a remonter equipe dev AZKO ».
+
+### Added — Widgets externes (sprint 1.c)
+- **`lib/external-widgets.mjs`** : catalogue de 10 widgets tiers connus (Qualitelis, eSeason, Thelis, Ctoutvert, Amenitiz, MisterBooking, Axeptio, Doctolib, Calendly, Google Maps). `identifyExternalWidget(element)` detecte via 3 strategies (selectorPrefix, classPrefix, htmlContains).
+- **`a11y-checks.mjs`** : quand une issue a11y touche un widget externe → severite degradee (BLOQUANT → IMPORTANT, IMPORTANT → MINEUR) + tag `externalWidget` dans le rapport + note « widget tiers, hors portee integrateur, signaler au vendeur ».
+- **Rendu HTML enrichi** : badge jaune « 🧩 Widget tiers : <vendor> » en tete de l'issue.
+- Tests : 22 cas (detection par id/class/url, casse insensible, downgrade severity).
+
+### Internal
+- 4 commits atomiques (1.a → 1.d).
+- `lib/report.mjs` `groupIssues` propage `externalWidget` au groupement.
+- CATEGORY_RULES `IMG_BROKEN` → prefixe `/^IMG_BROKEN/` pour couvrir aussi `IMG_BROKEN_LAZY_CMS`.
+- Total suite : 226+ tests unitaires (test-utils + test-report 52 + test-model-detection 13 + test-debuglog 25 + test-geo-extraction 27 + test-fix-suggestions 17 + test-element-location 31 + test-url-guard 31 + test-external-widgets 22).
+
 ## [2.10.0] - 2026-05-13
 
 ### Security

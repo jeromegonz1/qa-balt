@@ -11,7 +11,7 @@ Version actuelle : **v2.8.0** — 112+ checks automatises.
 - `lib/config.mjs` : configuration centralisee (seuils, blacklists, patterns — extensible)
 - `lib/models.mjs` : loader reference modeles AZKO (cache memoire, auto-decouverte)
 - `lib/utils.mjs` : securite (shellEscape, safeCurl, validatePublicUrl, isPrivateIp)
-- `lib/` : 20 modules (config, models, utils, url-guard, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, debuglog-checks, seranking-checks, geo-extraction, model-detection, element-location, fix-suggestions, report, report-html, clickup)
+- `lib/` : 21 modules (config, models, utils, url-guard, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, debuglog-checks, seranking-checks, geo-extraction, model-detection, element-location, fix-suggestions, external-widgets, report, report-html, clickup)
 - `data/` : base de reference modeles JSON par vertical (models-camping, models-avocat, models-cdj, models-notaire)
 - `docs/SPRINT-P1-P2-P3.md` : brief technique Sprint Playwright v3 (fiabilisation, preuve, rerun)
 
@@ -296,6 +296,52 @@ Les sites *.site.azko.fr ont un rate limiter/WAF cote Septeo. Si l'audit retourn
 - **P1 Fiabilisation** (v3.0.0) : addInitScript GSAP, console/pageerror, route() noise blocker, burger locator, networkidle
 - **P2 Preuve** (v3.1.0) : traces conditionnelles, evidence object, liens artefacts rapport
 - **P3 Rerun** (v3.2.0) : detection pages suspectes, rerun contexte neuf
+
+## Roadmap post-retours QA (Julien — RETOURS QA, 2026-05-20)
+
+Retours terrain de l'equipe integration apres 1 semaine d'usage v2.10.0.
+Faux positifs deja livres en v2.11.0. Restant a faire :
+
+### Sprint 2 — Parallelisation modules (perf)
+> « Chaque analyse (seo, perf etc.) s'effectue a la suite, n'y a-t-il pas moyen de les lancer en parallele ? »
+- Effort : moyen. Gain : ~5 min → ~3 min par audit.
+- Risque : rate limit WAF Septeo si plusieurs modules HTTP en parallele sur le meme site.
+- Approche : phases sequentielles, Promise.all dans chaque phase, semaphore concurrence max 3.
+- Phase 1 (curl rapide) : tech, link, page, content, debuglog
+- Phase 2 (Playwright) : visual, a11y
+- Phase 3 (API externe) : perf (SE Ranking)
+
+### Sprint 3 — Selector heuristique page-checks (curl-based)
+> « Sur certaines images que nous ajoutons, nous n'avons pas la possibilite d'ajouter de alt. Il faut voir toutes les insertions d'images possibles et voir lesquelles sont problematiques. »
+- Effort : moyen. Pour IMG_NO_ALT, ALT_GENERIC, LINK_NO_TEXT, MAIL_EMPTY, etc.
+- Etend le `element: { selector, html, location }` aux issues curl-based (pas seulement a11y).
+- Heuristique : extraction du parent class via regex sur HTML.
+- Couple avec brick deja livree element-location.mjs pour la zone semantique.
+
+### Sprint 4 — Screenshots elements annotes (UX game-changer)
+> « Pas pratique de devoir switcher d'onglet, je pensais plus a des captures d'ecran + liens directement dans le rapport »
+- Effort : gros. Demande terrain explicite et forte.
+- Playwright `element.screenshot()` avec outline rouge avant capture.
+- Limiter aux issues a haute valeur visuelle : OVERFLOW_HORIZONTAL, FONT_TOO_SMALL, HEADER/HERO_TOO_TALL, IMG_DISTORTED, FORM_LABEL_MISSING, A11Y_*.
+- Embed inline en data: URI dans le HTML (self-contained) OU fichier separe.
+- Retention 30j (a coupler avec cron cleanup sprint 6).
+
+### Sprint 5 — Re-run par issue (workflow integrateur)
+- Effort : gros. Refactor MODULE_REGISTRY pour exposer chaque check individuellement (`CHECKS` map par module).
+- Endpoint `POST /api/qa/recheck { issue_id, page_path? }` qui execute juste ce check.
+- Bouton « 🔁 Re-tester cette issue » dans le rapport HTML.
+- Latence cible : ~5-15s au lieu de 5 min.
+
+### Sprint 6 — Cron retention 30j medias
+- Effort : petit. Systemd timer ou cron utilisateur ubuntu.
+- Cleanup `/home/ubuntu/qa-balt/reports/*.{md,html}` et `screenshots/*` > 30j.
+- A coupler avec sprint 4 (sinon les screenshots explosent le disque).
+
+### Sprint 7 — Compare-with-model (semantic tagger)
+- Effort : gros. Necessite un « tagger » qui classifie les elements par fonction semantique (logo, social link, main nav, form submit, etc.).
+- Limite aux issues structurelles uniquement (whitelist d'IDs).
+- Compare le snippet client avec le snippet equivalent du modele parent (via `siteContext.modelRef.demoUrl`).
+- Demarrer apres sprint 3 (besoin du selector enrichi).
 
 ## Fichiers ignores par Git
 - `node_modules/`, `.env`, `reports/`, `screenshots/`, `headed-*.png`, `.DS_Store`
