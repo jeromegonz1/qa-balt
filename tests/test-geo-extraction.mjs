@@ -6,7 +6,7 @@
  * Note : findRealMapCoords() fait des appels reseau, non teste ici
  * (couvert par les tests E2E sur un vrai site).
  */
-import { extractMapsCoords, extractMapsAddress } from '../lib/geo-extraction.mjs';
+import { extractMapsCoords, extractMapsAddress, extractMapsShortLink } from '../lib/geo-extraction.mjs';
 
 let passed = 0;
 let failed = 0;
@@ -95,6 +95,25 @@ assert(extractMapsAddress(embedRawCoords) === null, 'Embed v1 avec coords brutes
 // extractMapsAddress edge cases
 assert(extractMapsAddress(null) === null, 'extractMapsAddress null');
 assert(extractMapsAddress('<html>no map</html>') === null, 'extractMapsAddress no embed');
+
+// === extractMapsShortLink (sprint 1.a — gestion short URLs) ===
+const mapsAppLink = '<a href="https://maps.app.goo.gl/MEXwNgWSdGirT8AKA">Voir sur Maps</a>';
+assert(extractMapsShortLink(mapsAppLink) === 'https://maps.app.goo.gl/MEXwNgWSdGirT8AKA', 'maps.app.goo.gl short link');
+
+const gooGlMaps = 'href="https://goo.gl/maps/abc123def"';
+assert(extractMapsShortLink(gooGlMaps) === 'https://goo.gl/maps/abc123def', 'goo.gl/maps short link');
+
+const gPage = 'href="https://g.page/mon-camping"';
+assert(extractMapsShortLink(gPage) === 'https://g.page/mon-camping', 'g.page short link');
+
+// Pattern sans protocole (raccourci possible)
+const noProto = 'lien: maps.app.goo.gl/XYZ123 dans le texte';
+assert(extractMapsShortLink(noProto) === 'maps.app.goo.gl/XYZ123', 'short link sans protocole');
+
+// Pas de match
+assert(extractMapsShortLink('<html>no link</html>') === null, 'pas de short link → null');
+assert(extractMapsShortLink('https://google.com/maps') === null, 'URL maps complete (pas short) → null');
+assert(extractMapsShortLink(null) === null, 'null → null');
 
 console.log(`\n${passed} passed, ${failed} failed\n`);
 process.exit(failed === 0 ? 0 : 1);
