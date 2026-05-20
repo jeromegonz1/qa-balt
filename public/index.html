@@ -76,7 +76,7 @@
     </div>
   </main>
 
-  <footer>QA-BALT &mdash; Septeo Digital</footer>
+  <footer id="qa-footer">QA-BALT v2.11.0 &mdash; Septeo Digital Services</footer>
 
   <script>
     const urlInput = document.getElementById('url');
@@ -196,6 +196,13 @@
     // Enter key to submit
     urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') startAudit(); });
     modelUrlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') startAudit(); });
+
+    // Footer dynamique : version actuelle depuis /health (fail silently si offline)
+    fetch('/health').then(r => r.json()).then(d => {
+      if (d?.version) {
+        document.getElementById('qa-footer').textContent = `QA-BALT v${d.version} — Septeo Digital Services`;
+      }
+    }).catch(() => { /* keep fallback */ });
 
     // Prefill depuis query string : ?url=... [&model_url=...] [&auto=1]
     const qs = new URLSearchParams(window.location.search);
