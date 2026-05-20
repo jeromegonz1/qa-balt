@@ -1,6 +1,6 @@
 {
   "name": "qa-balt",
-  "version": "2.11.0",
+  "version": "2.12.0",
   "description": "Agent QA automatisé pour sites AZKO/BALT en préprod",
   "type": "module",
   "scripts": {

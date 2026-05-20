@@ -11,7 +11,7 @@ Version actuelle : **v2.8.0** — 112+ checks automatises.
 - `lib/config.mjs` : configuration centralisee (seuils, blacklists, patterns — extensible)
 - `lib/models.mjs` : loader reference modeles AZKO (cache memoire, auto-decouverte)
 - `lib/utils.mjs` : securite (shellEscape, safeCurl, validatePublicUrl, isPrivateIp)
-- `lib/` : 21 modules (config, models, utils, url-guard, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, debuglog-checks, seranking-checks, geo-extraction, model-detection, element-location, fix-suggestions, external-widgets, report, report-html, clickup)
+- `lib/` : 22 modules (config, models, utils, url-guard, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, debuglog-checks, seranking-checks, geo-extraction, model-detection, element-location, html-ancestry, fix-suggestions, external-widgets, report, report-html, clickup)
 - `data/` : base de reference modeles JSON par vertical (models-camping, models-avocat, models-cdj, models-notaire)
 - `docs/SPRINT-P1-P2-P3.md` : brief technique Sprint Playwright v3 (fiabilisation, preuve, rerun)
 
@@ -311,12 +311,10 @@ Faux positifs deja livres en v2.11.0. Restant a faire :
 - Phase 2 (Playwright) : visual, a11y
 - Phase 3 (API externe) : perf (SE Ranking)
 
-### Sprint 3 — Selector heuristique page-checks (curl-based)
+### Sprint 3 — Selector heuristique page-checks (curl-based) [PARTIEL v2.12.0]
 > « Sur certaines images que nous ajoutons, nous n'avons pas la possibilite d'ajouter de alt. Il faut voir toutes les insertions d'images possibles et voir lesquelles sont problematiques. »
-- Effort : moyen. Pour IMG_NO_ALT, ALT_GENERIC, LINK_NO_TEXT, MAIL_EMPTY, etc.
-- Etend le `element: { selector, html, location }` aux issues curl-based (pas seulement a11y).
-- Heuristique : extraction du parent class via regex sur HTML.
-- Couple avec brick deja livree element-location.mjs pour la zone semantique.
+- Livre v2.12.0 : LINK_NO_TEXT, ALT_GENERIC, ALT_MISSING + module pure `html-ancestry.mjs` (30 tests).
+- A etendre (v2.13.0 selon retours) : MAIL_EMPTY, TITLE_TOO_SHORT, H1_MULTIPLE, IMG_MISSING_DIMENSIONS, TARGET_BLANK_NO_NOOPENER, LINKS_PROTOCOL_RELATIVE. Pattern identique via buildElementInfo, ~10 min par check.
 
 ### Sprint 4 — Screenshots elements annotes (UX game-changer)
 > « Pas pratique de devoir switcher d'onglet, je pensais plus a des captures d'ecran + liens directement dans le rapport »

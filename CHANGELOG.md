@@ -4,6 +4,46 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.12.0] - 2026-05-20
+
+### Added — Sprint 3 partiel : enrichissement issues curl-based
+Repond a la demande terrain « lesquelles images, ou ? » (RETOURS QA). Jusqu'ici
+seules les issues a11y avaient un `element: { selector, html, location }`
+(axe-core fournit la donnee). Les issues curl-based (regex sur HTML brut)
+n'avaient PAS ce champ.
+
+- **`lib/html-ancestry.mjs`** (nouveau, pure + testable sans Playwright) :
+  - `getHtmlAncestryAt(html, position)` : walk simplifie des tags ouvrants
+    avant une position, retourne la chaine d'ancetres dans l'ordre proche-
+    d'abord. Bornee a 5000 tags scannes (anti DoS).
+  - `buildHeuristicSelector(ancestry, tag)` : selector CSS heuristique via
+    cascade — id (3 ancetres proches) > classe BEM > classe simple > tag.
+  - `buildElementInfo(html, pos, matchedHtml, tag, classifyFn)` : helper
+    combine retournant `{ selector, html (200 chars), location }`.
+
+- **`lib/page-checks.mjs` `LINK_NO_TEXT`** : capture le 1er lien sans texte
+  ni alt avec selector + location → l'integrateur sait OU chercher dans
+  son code (header / footer / nav / hero).
+
+- **`lib/tech-checks.mjs` `ALT_GENERIC` + `ALT_MISSING`** : same pattern
+  pour les images alt generique (Diaporama, Image, Photo) et les images
+  sans attribut alt.
+
+### Limites
+- Selector est heuristique (pas unique) — donne une cle de recherche
+  concrete, pas un selector axe-core perfect. Suffisant pour ~80% des cas
+  AZKO (BEM bien structure).
+- Reste a etendre : MAIL_EMPTY, TITLE_TOO_SHORT, H1_MULTIPLE, IMG_MISSING_
+  DIMENSIONS, TARGET_BLANK_NO_NOOPENER — pattern identique, ~10 min par
+  check. Sera fait en v2.13.0 selon retours.
+
+### Tests
+- 30 cas unitaires (test-html-ancestry.mjs) : ancestralite simple, siblings
+  fermes, void elements, BEM AZKO realiste, casse insensible, self-closing,
+  edge cases. Integration buildElementInfo + classifyLocation.
+- Total suite : 256+ tests verts (test-utils + 52 + 13 + 25 + 27 + 17 + 31
+  + 31 + 22 + 30).
+
 ## [2.11.0] - 2026-05-20
 
 ### Fixed — Faux positifs identifies sur retours terrain (RETOURS QA — Julien)
