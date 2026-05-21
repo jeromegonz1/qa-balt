@@ -11,7 +11,7 @@ Version actuelle : **v2.8.0** — 112+ checks automatises.
 - `lib/config.mjs` : configuration centralisee (seuils, blacklists, patterns — extensible)
 - `lib/models.mjs` : loader reference modeles AZKO (cache memoire, auto-decouverte)
 - `lib/utils.mjs` : securite (shellEscape, safeCurl, validatePublicUrl, isPrivateIp)
-- `lib/` : 22 modules (config, models, utils, url-guard, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, debuglog-checks, seranking-checks, geo-extraction, model-detection, element-location, html-ancestry, fix-suggestions, external-widgets, report, report-html, clickup)
+- `lib/` : 23 modules (config, models, utils, url-guard, crawler, tech-checks, link-checks, page-checks, content-checks, visual-checks, a11y-checks, debuglog-checks, seranking-checks, geo-extraction, model-detection, element-location, html-ancestry, fix-suggestions, external-widgets, job-queue, report, report-html, clickup)
 - `data/` : base de reference modeles JSON par vertical (models-camping, models-avocat, models-cdj, models-notaire)
 - `docs/SPRINT-P1-P2-P3.md` : brief technique Sprint Playwright v3 (fiabilisation, preuve, rerun)
 
@@ -302,14 +302,13 @@ Les sites *.site.azko.fr ont un rate limiter/WAF cote Septeo. Si l'audit retourn
 Retours terrain de l'equipe integration apres 1 semaine d'usage v2.10.0.
 Faux positifs deja livres en v2.11.0. Restant a faire :
 
-### Sprint 2 — Parallelisation modules (perf)
-> « Chaque analyse (seo, perf etc.) s'effectue a la suite, n'y a-t-il pas moyen de les lancer en parallele ? »
-- Effort : moyen. Gain : ~5 min → ~3 min par audit.
-- Risque : rate limit WAF Septeo si plusieurs modules HTTP en parallele sur le meme site.
-- Approche : phases sequentielles, Promise.all dans chaque phase, semaphore concurrence max 3.
-- Phase 1 (curl rapide) : tech, link, page, content, debuglog
-- Phase 2 (Playwright) : visual, a11y
-- Phase 3 (API externe) : perf (SE Ranking)
+### Sprint 2 — Orchestration robuste [PARTIEL v2.13.0]
+- **2.a Queue FIFO** [LIVRE v2.13.0] : `lib/job-queue.mjs` + events SSE `queued`/`starting`. Plus de 429 brut quand MAX_CONCURRENT atteint. 37 tests.
+- **2.b Parallelisation modules** [À FAIRE] : phases sequentielles + Promise.all avec semaphore concurrence max 3. Gain ~5min → ~3min. Risque WAF Septeo (HTTP concurrents).
+  - Phase 1 (curl rapide) : tech, link, page, content, debuglog
+  - Phase 2 (Playwright) : visual, a11y
+  - Phase 3 (API externe) : perf (SE Ranking)
+- **2.c Self-restart watcher** [LIVRE v2.13.0] : `server.mjs` exit(0) si idle ET (uptime > 72h OU RAM > 1024 MB). Pre-requis VPS : `Restart=always` dans le unit file systemd.
 
 ### Sprint 3 — Selector heuristique page-checks (curl-based) [PARTIEL v2.12.0]
 > « Sur certaines images que nous ajoutons, nous n'avons pas la possibilite d'ajouter de alt. Il faut voir toutes les insertions d'images possibles et voir lesquelles sont problematiques. »

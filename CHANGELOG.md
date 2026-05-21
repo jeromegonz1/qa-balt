@@ -4,6 +4,55 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.13.0] - 2026-05-21
+
+### Added — Sprint 2.a : file d'attente FIFO pour audits
+Demande terrain : eviter le 429 brut quand plusieurs integrateurs lancent
+des audits simultanes depuis ClickUp.
+
+- **`lib/job-queue.mjs`** (nouveau) : classe JobQueue avec `maxConcurrent=3`
+  + `maxWaiting=10` par defaut. `enqueue(jobInfo, runFn)` lance direct si
+  slot dispo, sinon mis en file FIFO. Auto-progression quand un job finit.
+  `subscribe(jobId, cb)` pour notifier les changements de position (utilise
+  par SSE). `cancel(jobId)` pour les jobs en attente (utilise sur client
+  disconnect). `cleanupStale()` toutes les 2 min (anti orphan).
+- **Endpoints adaptes** (`server.mjs`) :
+  - `POST /api/qa` (webhook ClickUp) : 202 + `{ status: 'queued', position }`
+    quand saturated, 200 sinon. 409 si deja en cours/queue. 503 si maxWaiting.
+  - `GET /api/qa/stream` : SSE garde la connexion ouverte meme en attente.
+    Envoie event `queued` (avec position) puis `starting` quand le job devient
+    actif. Cancel automatique si client disconnect avant lancement.
+  - `GET /api/jobs` : retourne `{ jobs (running), waiting, maxConcurrent,
+    maxWaiting }`. Backward compat sur `jobs[]`.
+  - `GET /health` : ajoute `waitingJobs` au payload.
+- **Frontend** (`public/index.html`) : nouveaux listeners SSE `queued`
+  (affiche position + message d'attente) et `starting` (affiche « ▶️ Audit
+  demarre »).
+- **Tests** : 37 cas unitaires (test-job-queue.mjs) — enqueue, saturation,
+  auto-progression, position updates, duplicate jobId, queue pleine, cancel,
+  list() snapshot, cleanupStale, erreur dans runFn n'arrete pas la chaine.
+
+### Added — Sprint 2.c : self-restart watcher (anti-leak Playwright)
+Probleme observe : apres ~20h d'uptime, ~1.4 GB RAM peak et Playwright
+echoue parfois a creer un onglet (logs camping-le-napoleon 21/05).
+
+- **`server.mjs`** : check toutes les 5 min. Si idle (aucun job actif/queue)
+  ET (uptime > 72h OU RAM > 1024 MB) → `server.close()` puis `exit(0)`.
+  systemd doit avoir `Restart=always` dans le unit file pour relancer
+  automatiquement. Configurable via env :
+  - `QA_BALT_RESTART_AFTER_HOURS` (default 72)
+  - `QA_BALT_RESTART_RAM_MB` (default 1024)
+  - `QA_BALT_DISABLE_SELF_RESTART=1` pour desactiver
+
+### Limites
+- Queue in-memory (perdue au restart serveur, y compris self-restart).
+  Acceptable : un restart se fait quand idle, donc 0 job perdu.
+- Pas de priorisation (FIFO pur).
+
+### Total tests
+- 293 tests unitaires verts (test-utils + 52 + 13 + 25 + 27 + 17 + 31 + 31
+  + 22 + 30 + 37).
+
 ## [2.12.0] - 2026-05-20
 
 ### Added — Sprint 3 partiel : enrichissement issues curl-based
