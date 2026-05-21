@@ -739,6 +739,41 @@ function runQA(url, modelUrl = null, siteContext = {}) {
 }
 
 // ═══════════════════════════════════════
+// Self-restart watcher (sprint 2.c)
+//
+// Libere periodiquement les leaks Playwright en quittant proprement quand
+// l'instance est idle (aucun job en cours/en attente). systemd doit avoir
+// `Restart=always` dans le unit file pour relancer apres exit 0.
+//
+// Conditions de restart (toutes doivent etre vraies) :
+//   - uptime > QA_BALT_RESTART_AFTER_HOURS (default 72h = 3 jours)
+//     OU RAM resident > QA_BALT_RESTART_RAM_MB (default 1024 MB)
+//   - aucun job actif ni en attente (sinon on attend)
+//
+// Check toutes les 5 min. Skip total si QA_BALT_DISABLE_SELF_RESTART=1.
+// ═══════════════════════════════════════
+const RESTART_AFTER_HOURS = parseInt(process.env.QA_BALT_RESTART_AFTER_HOURS) || 72;
+const RESTART_RAM_MB = parseInt(process.env.QA_BALT_RESTART_RAM_MB) || 1024;
+const SELF_RESTART_DISABLED = process.env.QA_BALT_DISABLE_SELF_RESTART === '1';
+
+if (!SELF_RESTART_DISABLED) {
+  setInterval(() => {
+    const uptimeHours = process.uptime() / 3600;
+    const ramMB = process.memoryUsage().rss / 1024 / 1024;
+    const { active, waiting } = jobQueue.size();
+    const idle = active === 0 && waiting === 0;
+    const shouldRestart = idle && (uptimeHours > RESTART_AFTER_HOURS || ramMB > RESTART_RAM_MB);
+    if (shouldRestart) {
+      console.log(`🔄 Self-restart : uptime=${uptimeHours.toFixed(1)}h, RAM=${ramMB.toFixed(0)}MB, idle. systemd va relancer (Restart=always).`);
+      // Graceful : close server avant exit
+      server.close(() => process.exit(0));
+      // Failsafe : si server.close traine > 10s, force exit
+      setTimeout(() => process.exit(0), 10000).unref();
+    }
+  }, 5 * 60 * 1000).unref();
+}
+
+// ═══════════════════════════════════════
 // Start + Graceful shutdown
 // ═══════════════════════════════════════
 const server = app.listen(PORT, () => {
