@@ -31,6 +31,7 @@ import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
 import { resolve, basename } from 'path';
 import { validatePublicUrl } from './lib/utils.mjs';
 import { validateAuditUrl, validateModelUrl } from './lib/url-guard.mjs';
+import { JobQueue } from './lib/job-queue.mjs';
 import {
   getTask,
   extractPreprodUrl,
@@ -65,10 +66,21 @@ if (existsSync(envPath)) {
 const app = express();
 app.use(express.json());
 
-// Jobs en cours (pour éviter les doublons)
-const activeJobs = new Map();
+// File d'attente FIFO (sprint 2.a) — remplace activeJobs Map + 429 brut.
+// Active : jobs en cours. Waiting : jobs en attente d'un slot libre.
 const MAX_CONCURRENT_JOBS = parseInt(process.env.MAX_CONCURRENT_JOBS) || 3;
+const MAX_WAITING_JOBS = parseInt(process.env.MAX_WAITING_JOBS) || 10;
 const JOB_STALE_MS = 15 * 60 * 1000; // 15 min
+const jobQueue = new JobQueue({
+  maxConcurrent: MAX_CONCURRENT_JOBS,
+  maxWaiting: MAX_WAITING_JOBS,
+  staleAfterMs: JOB_STALE_MS,
+});
+// Cleanup des jobs perimes toutes les 2 min
+setInterval(() => {
+  const cleaned = jobQueue.cleanupStale();
+  if (cleaned.length > 0) console.log(`🧹 Jobs perimes nettoyes : ${cleaned.join(', ')}`);
+}, 120000).unref();
 
 // ── Auth middleware (si QA_BALT_API_KEY défini) ──
 const API_KEY = process.env.QA_BALT_API_KEY;
@@ -79,16 +91,20 @@ function requireAuth(req, res, next) {
   return res.status(401).json({ error: 'API key invalide ou manquante (header X-API-Key)' });
 }
 
-// ── Nettoyage des jobs périmés ──
-function cleanupStaleJobs() {
-  const now = Date.now();
-  for (const [taskId, job] of activeJobs) {
-    if (now - new Date(job.started).getTime() > JOB_STALE_MS) {
-      console.log(`🧹 Job périmé supprimé : ${taskId} (lancé ${job.started})`);
-      activeJobs.delete(taskId);
-    }
-  }
-}
+// Compat backward : proxy minimal pour les .set() / .delete() residuels dans
+// runQAForTask. La queue tracke deja l'etat, mais on accepte ces appels pour
+// ne pas casser la chaine. set/delete deviennent des no-op.
+const activeJobs = {
+  has: (id) => jobQueue.getStatus(id) !== null,
+  set: () => { /* no-op : la queue gere l'etat */ },
+  delete: (id) => jobQueue.cancel(id),
+  get size() { return jobQueue.size().active; },
+  get(id) {
+    const s = jobQueue.getStatus(id);
+    return s ? { started: new Date().toISOString(), status: s.status } : undefined;
+  },
+};
+function cleanupStaleJobs() { jobQueue.cleanupStale(); }
 
 // ═══════════════════════════════════════
 // Routes
@@ -96,10 +112,12 @@ function cleanupStaleJobs() {
 
 // Health check
 app.get('/health', (req, res) => {
+  const counts = jobQueue.size();
   res.json({
     status: 'ok',
     version: pkg.version,
-    activeJobs: activeJobs.size,
+    activeJobs: counts.active,
+    waitingJobs: counts.waiting,
     uptime: Math.round(process.uptime()),
   });
 });
@@ -120,36 +138,47 @@ app.post('/api/qa', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'task_id manquant dans le payload' });
   }
 
-  // Éviter les doublons
-  if (activeJobs.has(taskId)) {
+  // Éviter les doublons (deja en cours ou en queue)
+  const existingStatus = jobQueue.getStatus(taskId);
+  if (existingStatus) {
     return res.status(409).json({
-      error: 'QA déjà en cours pour cette tâche',
-      started: activeJobs.get(taskId).started,
+      error: `QA deja ${existingStatus.status === 'running' ? 'en cours' : 'en attente'} pour cette tache`,
+      status: existingStatus.status,
+      position: existingStatus.position,
     });
   }
 
-  // Nettoyer les jobs périmés (>15 min)
-  cleanupStaleJobs();
-
-  // Rate limit : max N jobs simultanés
-  if (activeJobs.size >= MAX_CONCURRENT_JOBS) {
-    return res.status(429).json({
-      error: `Limite atteinte (${MAX_CONCURRENT_JOBS} audits simultanés)`,
-      activeJobs: activeJobs.size,
-    });
-  }
+  // Cleanup des jobs perimes
+  jobQueue.cleanupStale();
 
   console.log(`\n📨 Webhook reçu — tâche ${taskId}`);
 
-  // Répondre immédiatement (ClickUp timeout = 30s)
-  res.json({ status: 'accepted', task_id: taskId, message: 'QA lancé en background' });
-
-  // Lancer le QA en background
+  // Enqueue : si la file est pleine → 503 ; sinon 202 (queue) ou 200 (lance direct)
+  let enqResult;
   try {
-    await runQAForTask(taskId);
+    enqResult = jobQueue.enqueue(
+      { jobId: taskId, type: 'clickup', startedAt: new Date().toISOString() },
+      async () => {
+        try { await runQAForTask(taskId); }
+        catch (err) { console.error(`❌ Erreur QA tâche ${taskId}:`, err.message); }
+      },
+    );
   } catch (err) {
-    console.error(`❌ Erreur QA tâche ${taskId}:`, err.message);
+    return res.status(503).json({ error: err.message });
   }
+
+  // Reponse immediate (ClickUp timeout = 30s)
+  if (enqResult.status === 'queued') {
+    res.status(202).json({
+      status: 'queued',
+      task_id: taskId,
+      position: enqResult.position,
+      message: `QA en attente, position ${enqResult.position} dans la file.`,
+    });
+  } else {
+    res.json({ status: 'accepted', task_id: taskId, message: 'QA lancé en background' });
+  }
+  return;
 });
 
 /**
@@ -196,11 +225,15 @@ app.post('/api/qa/direct', requireAuth, async (req, res) => {
  * GET /api/jobs — Liste des jobs en cours
  */
 app.get('/api/jobs', requireAuth, (req, res) => {
-  const jobs = [];
-  for (const [taskId, job] of activeJobs) {
-    jobs.push({ taskId, ...job });
-  }
-  res.json({ jobs });
+  const snapshot = jobQueue.list();
+  // Backward compat : jobs[] = running uniquement (anciens clients)
+  // Nouveau : on expose aussi waiting[] + maxConcurrent/maxWaiting
+  res.json({
+    jobs: snapshot.running.map(r => ({ taskId: r.jobId, ...r })),
+    waiting: snapshot.waiting,
+    maxConcurrent: snapshot.maxConcurrent,
+    maxWaiting: snapshot.maxWaiting,
+  });
 });
 
 // ── Dernier log SSE (diagnostic sans SSH) ──
@@ -232,14 +265,6 @@ app.get('/api/qa/stream', async (req, res) => {
     return res.status(400).json({ error: err.message });
   }
 
-  // Rate limit
-  cleanupStaleJobs();
-  if (activeJobs.size >= MAX_CONCURRENT_JOBS) {
-    return res.status(429).json({
-      error: `Limite atteinte (${MAX_CONCURRENT_JOBS} audits simultanés)`,
-    });
-  }
-
   const modelUrl = req.query.model_url || null;
   if (modelUrl) {
     try {
@@ -250,7 +275,6 @@ app.get('/api/qa/stream', async (req, res) => {
     }
   }
   const jobId = `stream-${Date.now()}`;
-  activeJobs.set(jobId, { started: new Date().toISOString(), status: 'running', url });
 
   // ── SSE session log ──
   const sseStart = Date.now();
@@ -281,20 +305,11 @@ app.get('/api/qa/stream', async (req, res) => {
   // Flush immédiatement les headers (important pour Apache/proxy)
   res.flushHeaders();
 
-  console.log(`\n🖥️  SSE audit lancé pour ${url} [${jobId}]`);
-
-  const qaPath = new URL('./qa.mjs', import.meta.url).pathname;
-  const qaArgs = [qaPath, url];
-  if (modelUrl) qaArgs.push('--model-url', modelUrl);
-
-  const child = spawn('node', qaArgs, {
-    cwd: __dirname,
-    stdio: ['ignore', 'pipe', 'pipe'],
-    timeout: 600000,
-  });
+  console.log(`\n🖥️  SSE audit demande pour ${url} [${jobId}]`);
 
   let buffer = { stdout: '', stderr: '' };
   let clientConnected = true;
+  let activeChild = null; // reference au subprocess une fois lance (null pendant queue)
 
   // Helper write SSE-safe (ignore si client déconnecté)
   function safeWrite(data) {
@@ -323,12 +338,71 @@ app.get('/api/qa/stream', async (req, res) => {
     }
   }
 
-  child.stdout.on('data', (d) => { process.stdout.write(d); sendLines('stdout', d); });
-  child.stderr.on('data', (d) => { process.stderr.write(d); sendLines('stderr', d); });
+  // ─── Lancement effectif de l'audit (appele par le runFn de la queue) ───
+  function startChildProcess() {
+    const qaPath = new URL('./qa.mjs', import.meta.url).pathname;
+    const qaArgs = [qaPath, url];
+    if (modelUrl) qaArgs.push('--model-url', modelUrl);
 
-  child.on('close', (code) => {
+    const child = spawn('node', qaArgs, {
+      cwd: __dirname,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 600000,
+    });
+    activeChild = child;
+    console.log(`   SSE audit lance (subprocess PID ${child.pid}) [${jobId}]`);
+    return child;
+  }
+
+  // ─── Enqueue dans la file FIFO ───
+  // Le runFn sera execute soit immediatement (slot dispo), soit quand un slot
+  // se libere. Il retourne une promise qui se resout a la fin du subprocess.
+  let resolveChildDone; // resolveur du runFn, appele par child.on('close')
+  let enqueueResult;
+  try {
+    enqueueResult = jobQueue.enqueue(
+      { jobId, url, type: 'sse', startedAt: new Date().toISOString() },
+      () => new Promise((resolve) => {
+        resolveChildDone = resolve;
+        const child = startChildProcess();
+        wireChildHandlers(child);
+      }),
+    );
+  } catch (err) {
+    // File pleine (max waiting atteint)
+    safeWrite(`event: error\ndata: ${err.message}\n\n`);
     clearInterval(heartbeat);
-    activeJobs.delete(jobId);
+    if (clientConnected) res.end();
+    return;
+  }
+
+  // Subscribe aux updates de position pour informer le client en SSE
+  jobQueue.subscribe(jobId, (status) => {
+    if (status.status === 'queued') {
+      safeWrite(`event: queued\ndata: ${JSON.stringify({ position: status.position })}\n\n`);
+    } else if (status.status === 'running') {
+      safeWrite(`event: starting\ndata: {}\n\n`);
+    }
+  });
+
+  // Envoyer le statut initial immediatement
+  if (enqueueResult.status === 'queued') {
+    safeWrite(`event: queued\ndata: ${JSON.stringify({ position: enqueueResult.position })}\n\n`);
+    console.log(`   SSE en attente [${jobId}] position ${enqueueResult.position}`);
+  } else {
+    safeWrite(`event: starting\ndata: {}\n\n`);
+  }
+
+  // Helpers : attache les listeners stdin/stdout + close au child
+  function wireChildHandlers(child) {
+    child.stdout.on('data', (d) => { process.stdout.write(d); sendLines('stdout', d); });
+    child.stderr.on('data', (d) => { process.stderr.write(d); sendLines('stderr', d); });
+    child.on('close', onChildClose);
+    child.on('error', onChildError);
+  }
+
+  function onChildClose(code) {
+    clearInterval(heartbeat);
     sseLog.childExitCode = code;
     sseLog.childExitAt = new Date().toISOString();
 
@@ -371,23 +445,31 @@ app.get('/api/qa/stream', async (req, res) => {
     if (clientConnected) res.end();
     const duration = Math.round((Date.now() - sseStart) / 1000);
     console.log(`   SSE terminé [${jobId}] — ${duration}s, ${sseLog.heartbeatsSent} pings, ${sseLog.dataEventsSent} events, client=${clientConnected ? 'connecté' : 'déconnecté'}, report=${sseLog.reportGenerated}`);
-  });
+    if (resolveChildDone) resolveChildDone();
+  }
 
-  child.on('error', (err) => {
+  function onChildError(err) {
     clearInterval(heartbeat);
-    activeJobs.delete(jobId);
     sseLog.endReason = 'child-error';
     safeWrite(`event: error\ndata: ${err.message}\n\n`);
     if (clientConnected) res.end();
-  });
+    if (resolveChildDone) resolveChildDone();
+  }
 
-  // Si le client déconnecte : on laisse l'audit aller au bout
+  // Si le client déconnecte : on laisse l'audit aller au bout (s'il est lance)
+  // Si le job est encore en queue (subprocess pas demarre), on l'annule.
   req.on('close', () => {
     const elapsed = Math.round((Date.now() - sseStart) / 1000);
     clientConnected = false;
     sseLog.clientDisconnectedAt = new Date().toISOString();
     sseLog.disconnectAfterMs = Date.now() - sseStart;
-    if (child.exitCode === null) {
+    if (!activeChild) {
+      // Pas encore demarre : on annule (libere un slot pour les suivants)
+      if (jobQueue.cancel(jobId)) {
+        console.log(`   SSE client deconnecte [${jobId}] avant lancement (encore en queue) — annule`);
+        sseLog.endReason = 'cancelled-while-queued';
+      }
+    } else if (activeChild.exitCode === null) {
       sseLog.endReason = 'client-disconnect-before-end';
       console.log(`   SSE client déconnecté [${jobId}] après ${elapsed}s (${sseLog.heartbeatsSent} pings envoyés, ${sseLog.dataEventsSent} events) — audit continue`);
     }

@@ -130,6 +130,17 @@
 
       eventSource = new EventSource('/api/qa/stream?' + params.toString());
 
+      // Sprint 2.a : event queued reçu si le job est en file d'attente
+      eventSource.addEventListener('queued', (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          appendLog(`⏳ En file d'attente — position ${data.position}. Démarrage automatique dès qu'un slot se libère.`);
+        } catch { /* skip */ }
+      });
+      eventSource.addEventListener('starting', () => {
+        appendLog('▶️ Audit démarré');
+      });
+
       eventSource.addEventListener('log', (e) => {
         appendLog(e.data);
       });
