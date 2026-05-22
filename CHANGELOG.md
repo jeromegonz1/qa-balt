@@ -4,6 +4,43 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.15.0] - 2026-05-22
+
+### Added — Galerie screenshots des pages (sprint 4-pre)
+Retour terrain : « je ne vois plus de screenshots ». Verification : les
+PNG mobile/desktop etaient bien sauvegardes mais JAMAIS linkes dans le
+rapport HTML (depuis v2.0.1).
+
+- **`GET /screenshots/:dir/:filename`** (server.mjs) :
+  - basename() anti path-traversal + whitelist .png + verif startsWith
+    sur screenshotsDir (defense en profondeur)
+  - Cache-Control 24h (PNG immutables)
+- **Section « 📸 Screenshots des pages »** dans rapport HTML :
+  - `<details>` collapsible juste au-dessus du footer
+  - Grille responsive (CSS grid, auto-fill min 200px)
+  - Thumbnails loading=lazy, click → PNG plein ecran nouvel onglet
+  - Caches a l'impression (@media print)
+
+### Added — AZKO container patterns dans classifyLocation (sprint 3.suite)
+Retour terrain : « certains selectors d'images d'annonces marques 📍 body
+au lieu de main ». L'heuristique manquait les containers AZKO classiques.
+
+- Nouveau dans LOCATION_RULES (lib/element-location.mjs) :
+  - `pagestandard`, `pagedefaut`, `pageFull`, `mainContents` → 'main'
+  - `annonces`, `annonce`, `liste-annonces` → 'main'
+  - `module`, `content` → 'main' (couvre les blocs CMS AZKO)
+- Fix subtil : `classesMatchAnyBlock` lowercase desormais le BLOCK aussi
+  (permet `mainContents` camelCase dans la whitelist).
+
+### Fixed — FOOTER_EMAIL_EMPTY enriched (sprint 3.suite)
+Le check tech-checks pour « Mail : sans adresse dans footer » utilise
+maintenant matchAll + buildElementInfo pour exposer `element.selector`
+et `element.location='footer'`.
+
+### Tests
+- 5 nouveaux cas test-element-location.mjs (AZKO patterns)
+- Total suite : 295+ tests unitaires verts
+
 ## [2.14.0] - 2026-05-22
 
 ### Added — Sprint 2.b : parallelisation modules par phases
