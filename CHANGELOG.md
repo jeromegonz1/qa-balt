@@ -4,6 +4,40 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.14.0] - 2026-05-22
+
+### Added — Sprint 2.b : parallelisation modules par phases
+Pipeline avant : strictement sequentiel — 8 modules a la suite, ~5 min/audit.
+Pipeline apres : 3 phases distinctes, modules paralleles dans chaque phase.
+
+- **Phase A (curl leger 1 page)** : tech-checks + debuglog-checks
+- **Phase B (curl multi-pages)** : link-checks + page-checks + content-checks
+- **Phase C (heavy)** : visual-checks (Playwright) + a11y-checks (axe-core)
+  + perf-checks (SE Ranking API)
+
+Implementation :
+- Champ `phase` ajoute a chaque entree de MODULE_REGISTRY
+- Helper `runOneModule(mod, ctx, results)` capture errors sans casser la phase
+- `Promise.allSettled` garantit que tous tournent meme si un crash
+- Modules synchrones wrappes en `await Promise.resolve(fn())` pour homogeneite
+- Logs : separateur visuel par phase, tag `[mod.id]` dans les resumes (lisibilite
+  en parallele), timer par phase + total pipeline
+
+Gains mesures (camping-le-napoleon, tech-only local) :
+- Phase A : ~2s en parallele (vs ~5s serie)
+- Phase B : 15.3s en parallele (vs ~25s serie)
+- Pipeline modules : 17.1s (gain ~30-50%)
+
+Gain attendu audit complet : ~5min → ~3min (phase C : visual + a11y + perf
+en parallele au lieu de serie, gain ~2 min).
+
+Risque WAF Septeo : faible — l'IP VPS est whitelistee. En dev local, le WAF
+peut rate-limit pendant phase B parallele (~50+ HTTP simultanes). En prod OK.
+
+### Internal
+- 293+ tests unitaires verts (pas de nouveau test : c'est de l'orchestration,
+  les modules eux-memes ne changent pas).
+
 ## [2.13.0] - 2026-05-21
 
 ### Added — Sprint 2.a : file d'attente FIFO pour audits
