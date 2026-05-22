@@ -91,9 +91,11 @@ assertEqual(classifyLocation('not an array'), 'body', 'non-array → body');
 assertEqual(classifyLocation([null, undefined, 'foo']), 'body', 'entries invalides → body');
 
 // === Pas de match dans une page neutre (div générique uniquement) ===
+// Note : 'content' matche desormais → main (sprint 3.suite AZKO patterns).
+// On utilise des classes vraiment generiques pour ce test.
 const chainNoMatch = [
   { tag: 'span', classes: [] },
-  { tag: 'div', classes: ['content'] },
+  { tag: 'div', classes: ['some-class'] },
   { tag: 'div', classes: ['wrapper'] },
 ];
 assertEqual(classifyLocation(chainNoMatch), 'body', 'aucun ancetre matche → body');
@@ -106,6 +108,14 @@ assertEqual(classifyLocation([{ tag: 'div', classes: ['Site-Header'] }]), 'heade
 // Chaine tres longue (mais bornee a 10 par COLLECT_ANCESTOR_CHAIN_FN)
 const longChain = Array.from({ length: 100 }, () => ({ tag: 'div', classes: ['x'] }));
 assertEqual(classifyLocation(longChain), 'body', 'chaine longue → body (pas de match, pas de freeze)');
+
+// === AZKO patterns (sprint 3.suite) ===
+// Avant : images d'annonces tombaient sur 'body' faute de match wrapper
+assertEqual(classifyLocation([{tag:'div',classes:['item','annonce_type_hebergement']},{tag:'div',classes:['annonces']}]), 'main', 'annonces (AZKO) → main');
+assertEqual(classifyLocation([{tag:'div',classes:['pagestandard']}]), 'main', 'pagestandard (AZKO body class) → main');
+assertEqual(classifyLocation([{tag:'div',classes:['mainContents']}]), 'main', 'mainContents (AZKO camelCase) → main');
+assertEqual(classifyLocation([{tag:'div',classes:['module','module_actus']}]), 'main', 'module_actus → main');
+assertEqual(classifyLocation([{tag:'div',classes:['content_diaporama']}]), 'main', 'content_diaporama → main');
 
 console.log(`\n${passed} passed, ${failed} failed\n`);
 process.exit(failed === 0 ? 0 : 1);
