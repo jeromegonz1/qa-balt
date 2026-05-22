@@ -4,6 +4,46 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.16.0] - 2026-05-22
+
+### Added — Sprint 4 : screenshots ELEMENT annotes par issue
+Retour terrain : « les screenshots ne sont pas des screenshots de soucis »
+(Jerome). La galerie de pages (sprint 4-pre) n'apportait pas de vraie valeur
+pour fixer un bug. Replacee par des screenshots zoomes sur l'element
+problematique avec outline rouge applique.
+
+- **`lib/element-capture.mjs`** (nouveau) :
+  - `captureElement(page, selector, outputPath)` : applique outline rouge
+    via inline style, scrollIntoView, screenshot Playwright, restaure le
+    style precedent (sauvegarde via data-attribute). Best-effort —
+    element hidden/detached → returns null sans throw.
+  - `buildIssueScreenshotName(id)` : nom de fichier safe (sanitize chars,
+    truncate, anti path-traversal).
+  - 16 tests unitaires.
+
+- **`lib/a11y-checks.mjs`** : capture screenshot annote au 1er noeud de
+  chaque violation. Sauve dans `screenshots/{site-date}/issues/issue-{id}.png`.
+  Path stocke dans `entry.element.screenshot`.
+
+- **`lib/report-html.mjs`** :
+  - Embed `<img>` du screenshot dans chaque carte issue (apres snippet
+    HTML, avant fix). URLs absolues si QA_BALT_PUBLIC_URL defini.
+  - CSS .issue-screenshot : border rouge, max-height 320px, hover effects.
+  - Galerie pages /screenshots-section RETIREE (CSS + HTML).
+
+- **`server.mjs`** : endpoint etendu `GET /screenshots/:dir/:sub/:file`
+  pour servir les screenshots elements (sub-dossier 'issues' whitelist).
+  Refactor en helper `serveScreenshot()` partage entre les 2 routes.
+
+### Removed
+- Galerie « 📸 Screenshots des pages » (sprint 4-pre rollback).
+  Les PNG de pages restent generes sur disque mais ne sont plus rendus
+  dans le rapport HTML.
+
+### Tests
+- 16 nouveaux cas (test-element-capture.mjs) : sanitization, guards.
+- Total suite : 309+ tests unitaires verts.
+
 ## [2.15.0] - 2026-05-22
 
 ### Added — Galerie screenshots des pages (sprint 4-pre)
