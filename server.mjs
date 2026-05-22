@@ -550,6 +550,39 @@ app.get('/reports/:filename', (req, res) => {
   res.send(readFileSync(filePath, 'utf-8'));
 });
 
+/**
+ * GET /screenshots/:dir/:filename — Sert les screenshots Playwright des audits
+ *
+ * Securite :
+ *   - basename() sur :dir ET :filename (anti path-traversal)
+ *   - Whitelist extension PNG uniquement
+ *   - Resolve absolu + verification que le path final est sous screenshotsDir
+ *   - Lecture seule, immutable (les screenshots ne sont jamais modifies par le serveur)
+ */
+app.get('/screenshots/:dir/:filename', (req, res) => {
+  const dir = basename(req.params.dir || '');
+  const filename = basename(req.params.filename || '');
+  if (!dir || !filename) return res.status(400).json({ error: 'Paramètre manquant' });
+  if (dir !== req.params.dir || filename !== req.params.filename) {
+    return res.status(400).json({ error: 'Nom invalide' });
+  }
+  if (!/\.png$/i.test(filename)) {
+    return res.status(400).json({ error: 'Extension non autorisée (png uniquement)' });
+  }
+  const screenshotsDir = resolve(__dirname, 'screenshots');
+  const filePath = resolve(screenshotsDir, dir, filename);
+  // Defense en profondeur : verifier que le path final est sous screenshotsDir
+  if (!filePath.startsWith(screenshotsDir + '/')) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  if (!existsSync(filePath)) {
+    return res.status(404).json({ error: 'Screenshot introuvable' });
+  }
+  res.setHeader('Content-Type', 'image/png');
+  res.setHeader('Cache-Control', 'public, max-age=86400'); // 24h
+  res.sendFile(filePath);
+});
+
 // ── Static frontend (après les routes API) ──
 app.use(express.static(resolve(__dirname, 'public')));
 
