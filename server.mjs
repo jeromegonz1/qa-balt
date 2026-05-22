@@ -551,27 +551,35 @@ app.get('/reports/:filename', (req, res) => {
 });
 
 /**
- * GET /screenshots/:dir/:filename — Sert les screenshots Playwright des audits
+ * GET /screenshots/:dir/:filename            — screenshot de page
+ * GET /screenshots/:dir/:sub/:filename        — screenshot d'element (sprint 4, dans /issues/)
  *
  * Securite :
- *   - basename() sur :dir ET :filename (anti path-traversal)
- *   - Whitelist extension PNG uniquement
- *   - Resolve absolu + verification que le path final est sous screenshotsDir
- *   - Lecture seule, immutable (les screenshots ne sont jamais modifies par le serveur)
+ *   - basename() sur chaque segment (anti path-traversal)
+ *   - Sub-dossier whitelist ('issues' uniquement pour l'instant)
+ *   - Extension PNG obligatoire
+ *   - Verification que le path final est sous screenshotsDir
  */
-app.get('/screenshots/:dir/:filename', (req, res) => {
-  const dir = basename(req.params.dir || '');
-  const filename = basename(req.params.filename || '');
-  if (!dir || !filename) return res.status(400).json({ error: 'Paramètre manquant' });
-  if (dir !== req.params.dir || filename !== req.params.filename) {
+const SUBDIR_WHITELIST = new Set(['issues']);
+
+function serveScreenshot(req, res, dir, filename, sub = null) {
+  const safeDir = basename(dir || '');
+  const safeFile = basename(filename || '');
+  const safeSub = sub ? basename(sub) : null;
+  if (!safeDir || !safeFile) return res.status(400).json({ error: 'Paramètre manquant' });
+  if (safeDir !== dir || safeFile !== filename || (sub && safeSub !== sub)) {
     return res.status(400).json({ error: 'Nom invalide' });
   }
-  if (!/\.png$/i.test(filename)) {
+  if (safeSub && !SUBDIR_WHITELIST.has(safeSub)) {
+    return res.status(403).json({ error: 'Sous-dossier non autorise' });
+  }
+  if (!/\.png$/i.test(safeFile)) {
     return res.status(400).json({ error: 'Extension non autorisée (png uniquement)' });
   }
   const screenshotsDir = resolve(__dirname, 'screenshots');
-  const filePath = resolve(screenshotsDir, dir, filename);
-  // Defense en profondeur : verifier que le path final est sous screenshotsDir
+  const filePath = safeSub
+    ? resolve(screenshotsDir, safeDir, safeSub, safeFile)
+    : resolve(screenshotsDir, safeDir, safeFile);
   if (!filePath.startsWith(screenshotsDir + '/')) {
     return res.status(403).json({ error: 'Forbidden' });
   }
@@ -579,8 +587,16 @@ app.get('/screenshots/:dir/:filename', (req, res) => {
     return res.status(404).json({ error: 'Screenshot introuvable' });
   }
   res.setHeader('Content-Type', 'image/png');
-  res.setHeader('Cache-Control', 'public, max-age=86400'); // 24h
+  res.setHeader('Cache-Control', 'public, max-age=86400');
   res.sendFile(filePath);
+}
+
+app.get('/screenshots/:dir/:filename', (req, res) => {
+  serveScreenshot(req, res, req.params.dir, req.params.filename);
+});
+
+app.get('/screenshots/:dir/:sub/:filename', (req, res) => {
+  serveScreenshot(req, res, req.params.dir, req.params.filename, req.params.sub);
 });
 
 // ── Static frontend (après les routes API) ──

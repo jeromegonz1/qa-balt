@@ -99,7 +99,7 @@ const MODULE_REGISTRY = [
     label: '♿ Checks accessibilité (axe-core)',
     fn: runA11yChecks,
     guard: ({ techOnly }) => !techOnly,
-    args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus],
+    args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus, ctx.screenshotsDir],
     async: true,
   },
   {
