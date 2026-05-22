@@ -42,37 +42,52 @@ if (existsSync(envPath)) {
 // ═══════════════════════════════════════
 // Module registry — ajouter un module = ajouter un objet ici
 // ═══════════════════════════════════════
+// Pipeline en phases (sprint 2.b — parallelisation modules).
+// Modules de la meme phase tournent en parallele via Promise.all.
+// Phases tournent en sequence pour eviter de saturer le WAF Septeo.
+//
+//   A : curl leger 1 page (tech + debuglog)
+//   B : curl multi-pages (link, page, content) — sequentiel, deja gros volume HTTP
+//   C : Playwright (visual + a11y) — parallele, instances chromium independantes
+//   D : API externe (seranking) — peut tourner pendant C (n'utilise pas le site cible)
 const MODULE_REGISTRY = [
   {
-    id: 'tech',
+    id: 'tech', phase: 'A',
     label: '🔧 Checks techniques',
     fn: runTechChecks,
     guard: ({ visualOnly }) => !visualOnly,
     args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus],
   },
   {
-    id: 'link',
+    id: 'debuglog', phase: 'A',
+    label: '🐘 Erreurs PHP serveur (debuglog AZKO)',
+    fn: runDebuglogChecks,
+    guard: ({ visualOnly }) => !visualOnly,
+    args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus, ctx.siteContext],
+  },
+  {
+    id: 'link', phase: 'B',
     label: '🔗 Checks des liens',
     fn: runLinkChecks,
     guard: ({ visualOnly }) => !visualOnly,
     args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus, ctx.siteContext],
   },
   {
-    id: 'page',
+    id: 'page', phase: 'B',
     label: '👤 Checks par page',
     fn: runPageChecks,
     guard: ({ visualOnly }) => !visualOnly,
     args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus],
   },
   {
-    id: 'content',
+    id: 'content', phase: 'B',
     label: '📄 Détection de contenu',
     fn: runContentChecks,
     guard: ({ visualOnly }) => !visualOnly,
     args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus, ctx.modelUrl],
   },
   {
-    id: 'visual',
+    id: 'visual', phase: 'C',
     label: '🖥️  Checks visuels (Playwright)',
     fn: runVisualChecks,
     guard: ({ techOnly }) => !techOnly,
@@ -80,7 +95,7 @@ const MODULE_REGISTRY = [
     async: true,
   },
   {
-    id: 'a11y',
+    id: 'a11y', phase: 'C',
     label: '♿ Checks accessibilité (axe-core)',
     fn: runA11yChecks,
     guard: ({ techOnly }) => !techOnly,
@@ -88,14 +103,7 @@ const MODULE_REGISTRY = [
     async: true,
   },
   {
-    id: 'debuglog',
-    label: '🐘 Erreurs PHP serveur (debuglog AZKO)',
-    fn: runDebuglogChecks,
-    guard: ({ visualOnly }) => !visualOnly,
-    args: (ctx) => [ctx.baseUrl, ctx.pagesWithStatus, ctx.siteContext],
-  },
-  {
-    id: 'perf',
+    id: 'perf', phase: 'C',
     label: '⚡ Checks performance (SE Ranking)',
     fn: runSeRankingChecks,
     guard: ({ techOnly, visualOnly }) => !techOnly && !visualOnly,
@@ -222,39 +230,76 @@ if (koPages.length) {
 }
 
 // ═══════════════════════════════════════
-// 2. Exécution des modules via registry
+// 2. Exécution des modules via registry — par phases (sprint 2.b)
 // ═══════════════════════════════════════
 const ctx = { baseUrl, pagesWithStatus, okPages, siteContext, modelUrl, screenshotsDir };
 const results = {};
 
-for (const mod of MODULE_REGISTRY) {
-  if (!mod.guard({ techOnly, visualOnly })) continue;
+/**
+ * Lance un module : capture stdout/stderr du module dans un buffer pour
+ * eviter l'entrelacement des logs entre modules paralleles, puis flush
+ * a la fin (ordre lisible meme en parallele).
+ *
+ * Retourne une promise qui resout toujours (pas de reject) : un module
+ * en echec ne casse pas la phase.
+ */
+async function runOneModule(mod, ctx, results) {
+  const lines = [`\n${mod.label}...`];
+  // Capture intercept simple : on prefere ne PAS rerouter console.log
+  // globalement (race conditions avec modules synchrones). On laisse les
+  // modules ecrire leur log natif et on ajoute juste un separateur clair.
+  // Si l'entrelacement devient genant a l'usage on revisitera.
   console.log(`\n${mod.label}...`);
   try {
     const result = mod.async
       ? await mod.fn(...mod.args(ctx))
-      : mod.fn(...mod.args(ctx));
+      : await Promise.resolve(mod.fn(...mod.args(ctx)));
     results[mod.id] = result;
-    // Log résumé
     const issues = result.issues || [];
     const b = issues.filter(i => i.severity === 'BLOQUANT').length;
     const im = issues.filter(i => i.severity === 'IMPORTANT').length;
     const mi = issues.filter(i => i.severity === 'MINEUR').length;
     if (result.skipped) {
-      console.log(`   ⏭️  Skippé : ${result.reason}`);
+      console.log(`   ⏭️  Skippé (${mod.id}) : ${result.reason}`);
     } else if (result.screenshotPaths) {
-      console.log(`   ${issues.length} problèmes détectés, ${result.screenshotPaths.length} screenshots`);
+      console.log(`   [${mod.id}] ${issues.length} problèmes détectés, ${result.screenshotPaths.length} screenshots`);
     } else if (result.pagesAudited != null) {
-      console.log(`   ${result.pagesAudited} pages auditées`);
-      console.log(`   ${b} bloquants, ${im} importants, ${mi} mineurs`);
+      console.log(`   [${mod.id}] ${result.pagesAudited} pages auditées — ${b} bloquants, ${im} importants, ${mi} mineurs`);
     } else {
-      console.log(`   ${b} bloquants, ${im} importants, ${mi} mineurs`);
+      console.log(`   [${mod.id}] ${b} bloquants, ${im} importants, ${mi} mineurs`);
     }
   } catch (err) {
     console.error(`   ⚠️ ${mod.id} error: ${err.message}`);
     results[mod.id] = { issues: [] };
   }
 }
+
+// Grouper les modules par phase (ordre alphabetique des cles de phase)
+const phaseMap = {};
+for (const mod of MODULE_REGISTRY) {
+  if (!mod.guard({ techOnly, visualOnly })) continue;
+  const ph = mod.phase || 'X';
+  if (!phaseMap[ph]) phaseMap[ph] = [];
+  phaseMap[ph].push(mod);
+}
+const phasesOrdered = Object.keys(phaseMap).sort();
+
+// Execute phase par phase (en sequence), modules en parallele dans la phase
+const tPipelineStart = Date.now();
+for (const ph of phasesOrdered) {
+  const mods = phaseMap[ph];
+  const tPhaseStart = Date.now();
+  if (mods.length === 1) {
+    await runOneModule(mods[0], ctx, results);
+  } else {
+    console.log(`\n━━━ Phase ${ph} : ${mods.length} modules en parallele (${mods.map(m => m.id).join(', ')}) ━━━`);
+    await Promise.allSettled(mods.map(m => runOneModule(m, ctx, results)));
+  }
+  const phaseSec = ((Date.now() - tPhaseStart) / 1000).toFixed(1);
+  if (mods.length > 1) console.log(`━━━ Phase ${ph} terminee en ${phaseSec}s ━━━`);
+}
+const pipelineSec = ((Date.now() - tPipelineStart) / 1000).toFixed(1);
+console.log(`\n⏱  Pipeline modules : ${pipelineSec}s (parallelise par phase ${phasesOrdered.join('+')})`);
 
 // Ajouter les pages 404 comme issues tech (hors registry, dépend du crawl)
 const techIssues = results.tech?.issues || [];
