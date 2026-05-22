@@ -27,7 +27,7 @@ import { findModel } from './lib/models.mjs';
 import { extractModelFromHtml } from './lib/model-detection.mjs';
 import { validatePublicUrl, safeCurl } from './lib/utils.mjs';
 import { validateAuditUrl, validateModelUrl } from './lib/url-guard.mjs';
-import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, readFileSync, readdirSync } from 'fs';
 import { resolve } from 'path';
 
 // Charger .env (parite avec server.mjs) — utile quand qa.mjs est lance via CLI
@@ -324,7 +324,22 @@ const visualIssues = results.visual?.issues || [];
 const a11yIssues = results.a11y?.issues || [];
 const perfIssues = results.perf?.issues || [];
 const debuglogIssues = results.debuglog?.issues || [];
-const screenshotPaths = results.visual?.screenshotPaths || [];
+// Sprint 4-pre : robustesse galerie — scanner le dossier filesystem plutot
+// que de dependre du tableau retourne par visual-checks (qui est vide en cas
+// de crash partiel du module). Tout PNG present sur disque est inclus.
+let screenshotPaths = results.visual?.screenshotPaths || [];
+try {
+  if (existsSync(screenshotsDir)) {
+    const filesOnDisk = readdirSync(screenshotsDir)
+      .filter(f => /\.png$/i.test(f))
+      .map(f => resolve(screenshotsDir, f));
+    // Fusionne sans doublon (en cas ou les deux sources se chevauchent)
+    const set = new Set([...screenshotPaths, ...filesOnDisk]);
+    screenshotPaths = [...set];
+  }
+} catch (e) {
+  // Si lecture dir echoue, on garde le tableau du module
+}
 
 // ═══════════════════════════════════════
 // 9. Génération du rapport
