@@ -4,6 +4,41 @@ Toutes les modifications notables de QA-BALT sont documentees ici.
 Format base sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versioning semantique [SemVer](https://semver.org/lang/fr/).
 
+## [2.17.0] - 2026-05-28
+
+### Added — Detection « lien Maps demo BALT non remplace »
+Pattern terrain (Jerome) : les integrateurs oublient souvent de modifier
+l'adresse footer + le lien « Nous localiser » (footer + page contact).
+Sur les modeles BALT, ce lien pointe par defaut sur le siege Septeo Labege.
+
+Investigation : scan de 13+ demos modeles septeo-digitalagency.fr a
+identifie 3 URLs hardcodees recurrentes :
+- `maps.app.goo.gl/jMmZsvHsKJ4GzuAG9` (PRINCIPALE — alguazil, alimon,
+  muscat, euclase, faena, allegro, hemingway, pina-colada, alto,
+  distorsion, ~10+ demos)
+- `maps.app.goo.gl/MStNtP9D3eoitZ9V7` (variante — bellini, cosmopolitan)
+- `goo.gl/maps/Gbw5HAkXrUjFoJGK8` (catalogues BALT)
+
+Nouveau check `MAP_BALT_DEFAULT_LINK` dans `lib/tech-checks.mjs` :
+- Severite **BLOQUANT** (critique pre-MEP — impact direct utilisateur +
+  perte totale du signal SEO local)
+- Detecte la presence de ces URLs (regex avec/sans prefix https://)
+- Compte les occurrences (typiquement 2 : footer + contact)
+- Issue enrichie via `buildElementInfo` (location + selector)
+
+Catalogue exhaustif dans `lib/config.mjs` : `BALT_DEFAULT_MAPS_URLS` —
+extensible facilement quand de nouvelles URLs sont decouvertes.
+
+Fix-suggestion `MAP_BALT_DEFAULT_LINK` :
+- Texte explicite « lien Maps fictif du siege Septeo / Labege »
+- Example code commente avec etapes pour recuperer la bonne URL (Google
+  Maps → clic Partager → Copier le lien)
+- File hint : CMS AZKO (champ lien Maps de l'organisation)
+
+### Tests
+- Pattern regex valide en isolation (URLs avec/sans https://, rejet
+  autres URLs Maps). Total suite : 309+ tests verts.
+
 ## [2.16.0] - 2026-05-22
 
 ### Added — Sprint 4 : screenshots ELEMENT annotes par issue
